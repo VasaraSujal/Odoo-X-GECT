@@ -27,7 +27,7 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-   dispatch(logoutUser());
+    dispatch(logoutUser());
     navigate("/");
   };
 
@@ -68,8 +68,9 @@ const Sidebar = () => {
               { label: 'Salary', icon: <DollarSign size={18} />, path: '/emsalary' },
               { label: 'Calendar', icon: <Calendar size={18} />, path: '/emcalendar' },
               { label: 'Profile', icon: <User size={18} />, path: `/emprofile/${user?.id}` },
+              { label: 'Leave', icon: <NotepadText size={18} />, path: '/emleave' },
               // { label: 'Settings', icon: <Settings size={18} />, path: '/settings' },
-              { label: 'Contect With HR', icon: <Phone  dText  size={18} />, path: '/emcontect' },
+              { label: 'Contect With HR', icon: <Phone size={18} />, path: '/emcontect' },
             ].map(({ label, icon, path }) => (
               <button
                 key={path}
@@ -77,11 +78,10 @@ const Sidebar = () => {
                   navigate(path);
                   setIsOpen(false); // Close sidebar on mobile after click
                 }}
-                className={`flex items-center gap-3 p-2 rounded-lg w-full text-left transition ${
-                  isActive(path)
+                className={`flex items-center gap-3 p-2 rounded-lg w-full text-left transition ${isActive(path)
                     ? 'bg-indigo-100 text-indigo-600 font-semibold'
                     : 'hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 {icon} <span>{label}</span>
               </button>

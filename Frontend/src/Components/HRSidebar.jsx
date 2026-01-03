@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   UserRoundPen,
+  NotepadText,
 } from "lucide-react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -64,8 +65,9 @@ const Sidebar = () => {
               { label: 'Payroll System', icon: <Wallet size={18} />, path: '/hrpayrollsystem' },
               { label: 'Calendar', icon: <Calendar size={18} />, path: '/hrcalendar' },
               { label: 'Profile', icon: <User size={18} />, path: `/hrprofile/${user?.id}` },
+              { label: 'Leave Requests', icon: <NotepadText size={18} />, path: '/hrleaverequests' },
               // { label: 'Settings', icon: <Settings size={18} />, path: '/settings' },
-              { label: 'Employee Queries', icon: <UserRoundPen  size={18} />, path: '/hrquery' },
+              { label: 'Employee Queries', icon: <UserRoundPen size={18} />, path: '/hrquery' },
             ].map(({ label, icon, path }) => (
               <button
                 key={path}
@@ -73,11 +75,10 @@ const Sidebar = () => {
                   navigate(path);
                   setIsOpen(false); // Close sidebar on mobile after click
                 }}
-                className={`flex items-center gap-3 p-2 rounded-lg w-full text-left transition ${
-                  isActive(path)
-                    ? 'bg-indigo-100 text-indigo-600 font-semibold'
-                    : 'hover:bg-gray-100'
-                }`}
+                className={`flex items-center gap-3 p-2 rounded-lg w-full text-left transition ${isActive(path)
+                  ? 'bg-indigo-100 text-indigo-600 font-semibold'
+                  : 'hover:bg-gray-100'
+                  }`}
               >
                 {icon} <span>{label}</span>
               </button>

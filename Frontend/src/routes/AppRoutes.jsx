@@ -36,6 +36,8 @@ import Add from "../Pages/Add";
 import NotFound from '../Components/NotFound'
 // import SettingsPage from "../Pages/Employee/SettingsPage";
 import Contect from "../Pages/Employee/Contect";
+import Leave from "../Pages/Employee/Leave";
+import LeaveRequests from "../Pages/Admin/LeaveRequests";
 
 const AppRoutes = () => {
   const token = useSelector((state) => state.auth.token);
@@ -58,6 +60,7 @@ const AppRoutes = () => {
           <Route path="emprofile/:id" element={<Emprofile />} />
           <Route path="emchat" element={<Chatbot />} />
           <Route path="emcontect" element={<Contect />} />
+          <Route path="emleave" element={<Leave />} />
         </Route>
       )}
 
@@ -70,9 +73,10 @@ const AppRoutes = () => {
           <Route path="hrpayrollsystem" element={<PayrollSystem />} />
           <Route path="hrcalendar" element={<HRCalendar />} />
           <Route path="hremployees/profile/:id" element={<EmployeeDashboard />} />
-          <Route path="payrollsystem/profile/:id" element={<PayrollPage/>}/>
+          <Route path="payrollsystem/profile/:id" element={<PayrollPage />} />
           <Route path="hrprofile/:id" element={<Hrprofile />} />
           <Route path="hrquery" element={<Query />} />
+          <Route path="hrleaverequests" element={<LeaveRequests />} />
         </Route>
       )}
       <Route path="/:id/set-password" element={<SetPassword />} />
