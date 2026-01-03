@@ -21,48 +21,111 @@ const GenerateSlip = async (req, res) => {
   const db = getDB();
   const { user_id, month } = req.body;
 
+  console.log("🔍 GenerateSlip called with:", { user_id, month });
+
   const user = await db.collection('SalaryInfo').findOne({ 
    employee_id :user_id });
 
+  console.log("📊 SalaryInfo found:", user);
+
 try {
   if (!user || !user.employee_name) {
-    return res.status(400).json({ error: "Invalid user data" });
+    return res.status(400).json({ error: "Invalid user data - SalaryInfo not found for employee: " + user_id });
   }
 
-  const salaryslip = await db.collection('Payrolls').findOne({
-    employee_id: user_id,
-    month
-  });
-
-  if (salaryslip) {
-    console.log('Saved salary slip fetched:', salaryslip);
-    return res.json(salaryslip);
-  }
-
+  // ✅ Fetch REAL-TIME attendance for the specified month (including today)
   const attendance = await db.collection('Attendance').find({
     user_id,
     date: { $regex: `^${month}` }
   }).toArray();
 
-  const presentDays = attendance.filter(a => a.status === 'Present').length;
-  const basicSalary = user.base_salary;
-  const workingDays = 26;
-  const paidLeaves = user.paid_leaves_allowed;
-  const absentDays = workingDays - presentDays;
+  console.log("📅 Attendance records found:", attendance.length);
 
-  const tax = basicSalary * (user.tax_percent/100);
-  const pf = basicSalary * (user.pf_percent/100);
+  const presentDays = attendance.filter(a => a.status === 'Present').length;
+  const workingDays = 26;
+  
+  // ✅ Validate paid leaves - default to 2 if not set or invalid
+  let paidLeaves = Number(user.paid_leaves_allowed);
+  console.log("🎯 Raw paid_leaves_allowed:", user.paid_leaves_allowed, "→ Converted to:", paidLeaves);
+  
+  if (!Number.isFinite(paidLeaves) || paidLeaves < 0) {
+    console.log("⚠️ Invalid paidLeaves, using default: 2");
+    paidLeaves = 2;
+  }
+  
+  const absentDays = Math.max(0, workingDays - presentDays);
   const unpaidLeaves = Math.max(0, absentDays - paidLeaves);
-  const leaveDeduction = unpaidLeaves * (basicSalary / workingDays);
-  const totalDeduction = tax + pf + leaveDeduction;
-  const netSalary = basicSalary - totalDeduction;
+
+  console.log("📋 Attendance calc:", { presentDays, absentDays, paidLeaves, unpaidLeaves });
+
+  // ✅ EARNINGS - Read from BOTH new (basic, hra, da...) and old (basic_salary) field names
+  // Backward compatibility: if new fields don't exist, use basic_salary
+  const basic = Number(user.basic) || Number(user.basic_salary) || 0;
+  const hra = Number(user.hra) || 0;
+  const da = Number(user.da) || 0;
+  const pb = Number(user.pb) || 0;
+  const lta = Number(user.lta) || 0;
+  const fixed = Number(user.fixed) || 0;
+
+  console.log("💰 Salary components:", { basic, hra, da, pb, lta, fixed });
+
+  // ✅ GROSS SALARY = Sum of all allowances (GUARANTEED)
+  const grossSalary = basic + hra + da + pb + lta + fixed;
+  
+  // ✅ DEDUCTIONS:
+  
+  // 1. PF - 12% of BASIC ONLY (standard in India)
+  const pf = Math.round((basic * 12) / 100);
+  
+  // 2. Professional Tax - FIXED AMOUNT (not percentage)
+  // Standard in India: ₹200/month for most states
+  const professionaltax = (user.professionaltax && user.professionaltax > 0) ? Number(user.professionaltax) : 200;
+  
+  // 3. Leave Deduction - ONLY for unpaid leaves beyond entitlement
+  // Formula: (Total Gross / 26 working days) × Unpaid Leave Days
+  const dailyRate = grossSalary / workingDays;
+  const leaveDeduction = Math.round(unpaidLeaves * dailyRate);
+  
+  console.log("💸 Deductions calc:", { pf, professionaltax, dailyRate, leaveDeduction });
+  
+  // ✅ TOTAL DEDUCTIONS
+  const totalDeductions = pf + professionaltax + leaveDeduction;
+  
+  // ✅ NET SALARY = GROSS - ALL DEDUCTIONS
+  const netSalary = Math.round(grossSalary - totalDeductions);
+  
+  console.log("✅ Final calculation:", { grossSalary, totalDeductions, netSalary });
 
   const payrollDoc = {
     employee_id: user_id,
     employee_name: user.employee_name,
     month,
-    basic_salary: basicSalary,
+    
+    // ✅ NEW salary components (all earnings)
+    basic,
+    hra,
+    da,
+    pb,
+    lta,
+    fixed,
+    gross_salary: Math.round(grossSalary),
+    
+    // ✅ Deductions breakdown
+    pf,
+    professionaltax,
+    total_deductions: totalDeductions,
+    
+    // ✅ Net salary after all deductions
+    net_salary: netSalary,
+    
+    // Legacy fields for backward compatibility
+    basic_salary: basic,
+    salary_breakdown: {
+      gross_salary: Math.round(grossSalary),
+      net_salary: netSalary
+    },
 
+    // ✅ REAL-TIME attendance summary (includes today)
     attendance_summary: {
       total_working_days: workingDays,
       present_days: presentDays,
@@ -72,23 +135,28 @@ try {
     },
 
     deductions: {
-      tax_amount: tax,
       pf_amount: pf,
+      tax_amount: professionaltax,
       leave_deduction: leaveDeduction,
-      total_deduction: totalDeduction
-    },
-
-    salary_breakdown: {
-      gross_salary: basicSalary,
-      net_salary: netSalary
+      total_deduction: totalDeductions
     },
 
     status: "Processed",
     generated_on: new Date().toISOString().slice(0, 10)
   };
 
-  await db.collection('Payrolls').insertOne(payrollDoc);
-  console.log('New salary slip generated:', payrollDoc);
+  // ✅ Always generate fresh slip (don't use cached version) to include today's attendance
+  // IMPORTANT: Delete old records first, then insert new ones
+  const deleteResult = await db.collection('Payrolls').deleteMany({ 
+    employee_id: user_id, 
+    month: month 
+  });
+  console.log(`🗑️ Deleted ${deleteResult.deletedCount} old payroll records`);
+  
+  const insertResult = await db.collection('Payrolls').insertOne(payrollDoc);
+  console.log('✅ Salary slip generated (Real-world industry standard):', payrollDoc);
+  console.log('📝 Insert result:', insertResult);
+  
   return res.json(payrollDoc);
 
 } catch (error) {

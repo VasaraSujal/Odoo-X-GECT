@@ -39,7 +39,7 @@ const updateProfile = async (req, res) => {
     salary_components,
     updated_by
   } = req.body;
-  
+
   // Dynamically construct update fields
   const updateFields = {};
 
@@ -66,7 +66,7 @@ const updateProfile = async (req, res) => {
       { user_id: userId },
       { $set: updateFields }
     );
-    
+
     if (userResult.modifiedCount === 0) {
       return res.status(404).json({ message: 'User not found or no changes made' });
     }
@@ -74,7 +74,7 @@ const updateProfile = async (req, res) => {
     // ✅ Auto-update SalaryInfo collection if salary components are provided
     if (wage && parseFloat(wage) > 0 && salary_components && Object.keys(salary_components).length > 0) {
       const nowIST = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000);
-      
+
       const salaryUpdateFields = {
         base_salary: parseFloat(wage),
         basic: salary_components.basic || 0,
@@ -97,11 +97,11 @@ const updateProfile = async (req, res) => {
         { $set: salaryUpdateFields },
         { upsert: true } // Create if doesn't exist
       );
-      
+
       console.log(`✅ SalaryInfo updated/created for employee: ${userId}`);
     }
 
-    res.json({ 
+    res.json({
       message: 'Profile and salary information updated successfully',
       updated: Object.keys(updateFields)
     });
@@ -145,12 +145,12 @@ const addUser = async (req, res) => {
     if (wage && parseFloat(wage) > 0) {
       if (!salary_components || typeof salary_components !== 'object' || Object.keys(salary_components).length === 0) {
         console.error("Validation Error: Wage provided but salary_components missing or invalid", { wage, salary_components });
-        return res.status(400).json({ 
-          message: "Salary components not calculated. Please ensure wage is entered and preview appears." 
+        return res.status(400).json({
+          message: "Salary components not calculated. Please ensure wage is entered and preview appears."
         });
       }
     }
-    
+
     // Ensure salary_components is always an object
     const finalSalaryComponents = salary_components && typeof salary_components === 'object' ? salary_components : {};
 
@@ -300,7 +300,7 @@ const addUser = async (req, res) => {
     if (wage && parseFloat(wage) > 0 && finalSalaryComponents && Object.keys(finalSalaryComponents).length > 0) {
       try {
         const nowIST = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000);
-        
+
         await db.collection('SalaryInfo').insertOne({
           employee_id: id,
           employee_name: name,
@@ -322,7 +322,7 @@ const addUser = async (req, res) => {
           status: "Active",
           created_at: nowIST
         });
-        
+
         console.log(`✅ Salary info auto-created for employee: ${id}`);
       } catch (salaryError) {
         console.error("⚠️ Warning: Could not auto-create salary info:", salaryError);
@@ -336,45 +336,53 @@ const addUser = async (req, res) => {
       userId: result.insertedId,
     });
   } catch (error) {
-  console.error("❌ Error adding user:", error); // <- This will log the exact problem
-  res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error("❌ Error adding user:", error); // <- This will log the exact problem
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
-const alluser = async (req,res)=>{
+const alluser = async (req, res) => {
   const db = getDB();
-  try{
+  try {
     const users = await db.collection('users').find().project({ password: 0 }).toArray();
     if (!users || users.length === 0) {
       return res.status(404).json({ message: 'No users found' });
     }
-    res.status(200).json({message:"User fetched sucessfully", users});
-    
+    res.status(200).json({ message: "User fetched sucessfully", users });
 
-  }catch(error){
+
+  } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 }
 
-const userByitsId = async (req,res)=>{
-  const db=getDB();
+const userByitsId = async (req, res) => {
+  const db = getDB();
 
-  const {userid}=req.params;
-  console.log("id recieved is",req.params);
-  try{
-    const user=await db.collection('users').findOne(
-      {user_id:userid},
-      {projection: { password: 0 } }
-    )
-    if(!user) return res.status(404).json({ message: 'User not found' });
+  const { userid } = req.params;
+  console.log("id recieved is", req.params);
+  try {
+    let user = await db.collection('users').findOne(
+      { $or: [{ user_id: userid }, { id: userid }, { _id: userid }] },
+      { projection: { password: 0 } }
+    );
+
+    if (!user && userid && userid.length === 24) {
+      user = await db.collection('users').findOne(
+        { _id: new ObjectId(userid) },
+        { projection: { password: 0 } }
+      );
+    }
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
     res.status(200).json({ message: 'User fetched successfully', user });
   }
-  catch(error){
+  catch (error) {
     console.error('Error fetching user by ID:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 }
 
 
-module.exports = { getProfile, addUser, alluser,userByitsId,updateProfile};
+module.exports = { getProfile, addUser, alluser, userByitsId, updateProfile };

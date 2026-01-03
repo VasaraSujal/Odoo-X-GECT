@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.1.7",
     "axios": "^1.11.0",
     "dayjs": "^1.11.13",
+    "face-api.js": "^0.20.0",
     "framer-motion": "^12.23.11",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.511.0",
