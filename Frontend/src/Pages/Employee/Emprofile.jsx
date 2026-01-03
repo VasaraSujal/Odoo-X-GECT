@@ -1,39 +1,55 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import {cacheUser} from '../../Redux/Slice'
-import { FaDownload, FaEnvelope, FaPhone, FaGlobe, FaCalendarAlt,FaRupeeSign,FaRegClock } from "react-icons/fa";
-import { CgProfile } from "react-icons/cg";
+import { cacheUser } from '../../Redux/Slice';
+import {
+  User, Mail, Phone, MapPin, Building2,
+  Briefcase, CreditCard, Calendar, DollarSign,
+  Clock, Globe, Lock, Edit2, Camera, Save, X,
+  AlertCircle, CheckCircle
+} from 'lucide-react';
 import "chart.js/auto";
-
 
 const Emprofile = () => {
   const [tab, setTab] = useState("Personal Info");
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-64px)]">
-          <Profile />
-          <div className="flex-1 bg-white p-6 rounded-2xl shadow-md flex flex-col">
-            
-            {/* 🔹 Add new tab for Change Password */}
-            <nav className="flex gap-4 border-b pb-3 mb-4 text-sm font-medium">
-              {["Personal Info", "Salary Info", "Change Password"].map((t) => (
-                <button
-                  key={t}
-                  className={`capitalize px-4 py-2 rounded-lg transition ${
-                    tab === t ? "bg-indigo-100 text-indigo-600" : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => setTab(t)}
-                >
-                  {t.replace("info", " Info")}
-                </button>
-              ))}
-            </nav>
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header Title */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+            <p className="text-gray-500 mt-1">Manage your personal information and security</p>
+          </div>
+        </div>
 
-            {/* 🔹 Render Tabs */}
-            <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Sidebar - Profile Card */}
+          <Profile />
+
+          {/* Right Content - Tabs */}
+          <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+            {/* Tab Navigation */}
+            <div className="border-b border-gray-100">
+              <nav className="flex gap-6 px-6 pt-4">
+                {["Personal Info", "Salary Info", "Change Password"].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={`pb-4 px-2 text-sm font-medium transition-all relative ${tab === t
+                        ? "text-purple-600 border-b-2 border-purple-600"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 rounded-t-lg"
+                      }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6 md:p-8 flex-1 overflow-y-auto">
               {tab === "Personal Info" && <InfoTab />}
               {tab === "Salary Info" && <SalaryInfoTab />}
               {tab === "Change Password" && <ChangePasswordTab />}
@@ -45,357 +61,338 @@ const Emprofile = () => {
   );
 };
 
-
-const Profile = () =>{
-  const {id}=useParams();      
-  console.log(id)
+// ------------------------------------------------------------------
+// Left Sidebar Component: Profile Summary
+// ------------------------------------------------------------------
+const Profile = () => {
+  const { id } = useParams();
   const dispatch = useDispatch();
   const usersdata = useSelector((state) => state.auth.usersdata);
-  console.log(usersdata)
-  const [employee,setEmployee]=useState(null)
-console.log("1. Profile rendered");
-useEffect(()=>{
-if (usersdata[id]){
-  console.log("Loaded from cache",usersdata)
-    console.log("2. Profile useEffect triggered");
-  setEmployee(usersdata[id])
-}else{
-const FetchEmployee= async()=>{
-  try{
-  
-    
-    const response= await fetch(`https://attendance-and-payroll-management.onrender.com/api/users/${id}`);
-    
-      if(!response.ok){
-            throw new Error("Failed to fetch employees");
-      }
-       const data=await response.json()
-       setEmployee(data.user)
-       dispatch(cacheUser({ id, userData: data.user }));
-       console.log('Fetching the data from api')
-         
-  }catch(error){
-  console.error("Error fetching employees:", error);
-  }
-}
-FetchEmployee();
-};
-},[id,dispatch,cacheUser])
+  const [employee, setEmployee] = useState(null);
 
- if (!employee) return <p>Loading...</p>;
-console.log(employee)
+  useEffect(() => {
+    if (usersdata[id]) {
+      setEmployee(usersdata[id]);
+    } else {
+      const FetchEmployee = async () => {
+        try {
+          const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5500/api";
+          const response = await fetch(`${apiBase}/users/${id}`);
+          if (!response.ok) throw new Error("Failed to fetch employees");
+          const data = await response.json();
+          setEmployee(data.user);
+          dispatch(cacheUser({ id, userData: data.user }));
+        } catch (error) {
+          console.error("Error fetching employees:", error);
+        }
+      }
+      FetchEmployee();
+    };
+  }, [id, dispatch, usersdata]); // Removed cacheUser from deps (it's an action creator)
+
+  if (!employee) return (
+    <div className="w-full lg:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-fit animate-pulse">
+      <div className="h-24 w-24 bg-gray-200 rounded-full mx-auto mb-4"></div>
+      <div className="h-4 w-32 bg-gray-200 mx-auto mb-2"></div>
+    </div>
+  );
 
   return (
- <div className="bg-white w-full lg:w-1/5 rounded-2xl shadow-md p-6 text-sm text-gray-700 space-y-6">
-  {/* Profile Header */}
-  <div className="flex flex-col items-center text-center">
-      <img src="https://i.pravatar.cc/100?img=56" alt="Employee" className="w-24 h-24 rounded-full mb-4 shadow" />
-      <h3 className="text-lg font-semibold">{employee.username}</h3>
-      <p className="text-sm text-gray-500">UX Designer</p>
-    </div>
+    <div className="w-full lg:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-fit space-y-8">
 
-  {/* Info Section */}
-  <div>
-    <h4 className="text-xs font-semibold text-gray-500 mb-3">Info</h4>
-    <div className="space-y-4">
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-        <FaEnvelope className="text-gray-500 mt-1" />
+      {/* Avatar & Name */}
+      <div className="text-center">
+        <div className="relative w-28 h-28 mx-auto mb-4 group">
+          <img
+            src={employee.profilePic || "https://i.pravatar.cc/150?img=12"}
+            alt="Employee"
+            className="w-full h-full rounded-full object-cover border-4 border-purple-50 shadow-md"
+          />
+          <button className="absolute bottom-1 right-1 bg-purple-600 text-white p-2 rounded-full shadow-lg hover:bg-purple-700 transition opacity-0 group-hover:opacity-100">
+            <Camera size={14} />
+          </button>
         </div>
-        <div>
-          <p className="text-sm font-medium">{employee.role}</p>
-          <p className="text-xs text-gray-400">Department</p>
+        <h3 className="text-xl font-bold text-gray-900">{employee.username}</h3>
+        <p className="text-sm text-gray-500 font-medium">{employee.designation || "Employee"}</p>
+        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
+          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+          Active
         </div>
       </div>
 
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-        <FaRupeeSign className="text-gray-500 mt-1" />
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-2 gap-3 border-t border-b border-gray-100 py-6">
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <DollarSign size={18} className="mx-auto text-purple-600 mb-1" />
+          <p className="text-xs text-gray-500">Salary</p>
+          <p className="font-bold text-gray-800 text-sm">₹{employee.salary || '0'}</p>
         </div>
-        <div>
-          <p className="text-sm font-medium text-green-600">₹{employee.salary}</p>
-          <p className="text-xs text-gray-400">Salary</p>
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <Briefcase size={18} className="mx-auto text-purple-600 mb-1" />
+          <p className="text-xs text-gray-500">Type</p>
+          <p className="font-bold text-gray-800 text-sm">{employee.employmentType || '-'}</p>
         </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-        <FaRegClock  className="text-gray-500 mt-1" />
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <Clock size={18} className="mx-auto text-purple-600 mb-1" />
+          <p className="text-xs text-gray-500">Shift</p>
+          <p className="font-bold text-gray-800 text-sm">{employee.attendanceType || '-'}</p>
         </div>
-        <div>
-          <p className="text-sm font-medium">Regular</p>
-          <p className="text-xs text-gray-400">{employee.employmentType}</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2"
-               viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round"
-               d="M8 7V3m8 4V3m-9 8h10m-10 4h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        </div>
-        <div>
-          <p className="text-sm font-medium">{employee.joigningDate}</p>
-          <p className="text-xs text-gray-400">Joining Date</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* Contact Section */}
-  <div>
-    <h4 className="text-xs font-semibold text-gray-500 mb-3">Contact</h4>
-    <div className="space-y-3">
-      <div className="flex items-start gap-3">
-        <FaEnvelope className="text-gray-500 mt-1" />
-        <div>
-          <p className="text-xs text-gray-500">Email</p>
-          <p className="text-sm">{employee.email}</p>
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <Calendar size={18} className="mx-auto text-purple-600 mb-1" />
+          <p className="text-xs text-gray-500">Joined</p>
+          <p className="font-bold text-gray-800 text-sm">{employee.joigningDate || '-'}</p>
         </div>
       </div>
 
-      <div className="flex items-start gap-3">
-        <FaPhone className="text-gray-500 mt-1" />
-        <div>
-          <p className="text-xs text-gray-500">Phone</p>
-          <p className="text-sm">{employee.mobile}</p>
-        </div>
-      </div>
+      {/* Contact List */}
+      <div className="space-y-4">
+        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Details</h4>
 
-      <div className="flex items-start gap-3">
-        <FaGlobe className="text-gray-500 mt-1" />
-        <div>
-          <p className="text-xs text-gray-500">Website</p>
-          <a href="https://bit.ly/3uOJF79" className="text-sm text-blue-600 underline">
-            https://bit.ly/3uOJF79
-          </a>
+        <div className="flex items-center gap-3 text-sm group">
+          <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-100 transition">
+            <Mail size={16} />
+          </div>
+          <div className="overflow-hidden">
+            <p className="text-xs text-gray-500">Email Address</p>
+            <p className="font-medium text-gray-900 truncate" title={employee.email}>{employee.email}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-sm group">
+          <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-100 transition">
+            <Phone size={16} />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Phone Number</p>
+            <p className="font-medium text-gray-900">{employee.mobile || 'N/A'}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-sm group">
+          <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-100 transition">
+            <MapPin size={16} />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Location</p>
+            <p className="font-medium text-gray-900 truncate w-48" title={employee.address}>{employee.address || 'N/A'}</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
+  );
+};
 
-)};
-
-function InfoTab() {
+// ------------------------------------------------------------------
+// Tab 1: Personal Info
+// ------------------------------------------------------------------
+const InfoTab = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
   const [message, setMessage] = useState("Loading...");
   const [showModal, setShowModal] = useState(false);
   const [formMode, setFormMode] = useState("add");
-  const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
-   
   const userFromStore = useSelector((state) => state.auth.usersdata[id]);
-  console.log("3. InfoTab rendered");
 
   useEffect(() => {
     if (userFromStore) {
       setEmployee(userFromStore);
-      console.log("Fatching data from cach in info tab")
-        console.log("4. InfoTab useEffect triggered (cache check)");
-    }else{
-    setMessage("User data is not found for this user. Please add the user info.");
-    return;
+    } else {
+      setMessage("User data is not found. Please contact HR.");
     }
   }, [userFromStore]);
 
-    const openModal = (mode, data = null) => {
+  const openModal = (mode) => {
     setFormMode(mode);
-    setSelectedEmployeeData(data);
     setShowModal(true);
-  };  
-  
-  if (!employee) return <p>Loading...</p>;
+  };
+
+  if (!employee) return (
+    <div className="flex items-center justify-center h-48 text-gray-500 gap-2">
+      <AlertCircle size={20} />
+      <p>{message}</p>
+    </div>
+  );
+
+  const Section = ({ title, icon: Icon, children }) => (
+    <div className="mb-8 last:mb-0">
+      <h4 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">
+        <Icon size={20} className="text-purple-600" />
+        {title}
+      </h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+        {children}
+      </div>
+    </div>
+  );
+
+  const GridItem = ({ label, value }) => (
+    <div className="space-y-1">
+      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
+      <p className="text-sm md:text-base font-semibold text-gray-800 break-words">{value || 'N/A'}</p>
+    </div>
+  );
 
   return (
     <>
-    <div className="space-y-5 text-gray-700">
-      {employee ? (
-        <>
-          <h3 className="text-xl font-semibold border-b pb-2">
-            User {employee.user_id} Profile Info
-          </h3>
+      <div className="space-y-2">
 
-          {/* Personal Info */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">👤 Personal Details</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Full Name:</span> {employee.username}</p>
-              <p><span className="font-medium">Employee ID:</span> {employee.user_id}</p>
-              <p><span className="font-medium">Base Salary:</span> ₹{employee.salary}</p>
-              <p><span className="font-medium">Joining Date:</span> {employee.joigningDate}</p>
-            </div>
-          </div>
+        {/* Personal Details */}
+        <Section title="Personal Information" icon={User}>
+          <GridItem label="Full Name" value={employee.username} />
+          <GridItem label="Employee ID" value={employee.user_id} />
+          <GridItem label="Joining Date" value={employee.joigningDate} />
+          <GridItem label="Gender" value={employee.gender || 'N/A'} />
+        </Section>
 
-       {/* Contact Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">📞 Contact Information</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">Phone:</span> {employee.mobile || 'N/A'}</p>
-          <p><span className="font-medium">Email:</span> {employee.email || 'N/A'}</p>
-          <p className="col-span-2"><span className="font-medium">Address:</span> {employee.address || 'N/A'}</p>
+        {/* Professional Details */}
+        <Section title="Professional Details" icon={Briefcase}>
+          <GridItem label="Designation" value={employee.designation} />
+          <GridItem label="Role" value={employee.role} />
+          <GridItem label="Employment Type" value={employee.employmentType} />
+          <GridItem label="Base Pay" value={`₹${employee.salary}`} />
+        </Section>
+
+        {/* Emergency Contact */}
+        <Section title="Emergency Contact" icon={AlertCircle}>
+          <GridItem label="Contact Name" value={employee.emergencyContactname} />
+          <GridItem label="Contact Number" value={employee.emergencyContact} />
+        </Section>
+
+        {/* Financial Info */}
+        <Section title="Financial Details" icon={CreditCard}>
+          <GridItem label="Bank Account" value={employee.bankAccount} />
+          <GridItem label="IFSC Code" value={employee.IFSC} />
+        </Section>
+
+        <div className="pt-6 border-t border-gray-100 flex justify-end">
+          <button
+            onClick={() => openModal("update")}
+            className="px-6 py-2.5 bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-200 hover:bg-purple-700 transition flex items-center gap-2 font-medium"
+          >
+            <Edit2 size={16} /> Update Profile
+          </button>
         </div>
       </div>
 
-      {/* Job Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">💼 Job Details</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">Employee ID:</span> {employee.user_id}</p>
-          <p><span className="font-medium">Designation:</span> {employee.designation}</p>
-          <p><span className="font-medium">Attendance Type:</span> {employee.attendanceType}</p>
-          <p><span className="font-medium">Joining Date:</span> {employee.joigningDate}</p>
-        </div>
-      </div>
-
-      {/* Emergency Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">🚨 Emergency Contact</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">Name:</span> {employee.emergencyContactname}</p>
-          <p><span className="font-medium">Contact:</span> {employee.emergencyContact}</p>
-        </div>
-      </div>
-
-            {/* Emergency Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">Bank Info</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">BankAccount No:</span> {employee.bankAccount}</p>
-          <p><span className="font-medium">IFSC:</span> {employee.IFSC}</p>
-        </div>
-      </div>
-
-          {/* Buttons */}
-          <div className="pt-2">
-            <button
-              onClick={() => openModal("update", employee)}
-              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-            >
-              ✏️ Update Your Profile
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="text-red-600 font-medium">{message}</p>
-        </>
-      )}
-
-      {/* Modal */}
       {showModal && (
         <ProfileModal
           mode={formMode}
           employeeId={id}
-          defaultData={formMode === "update" ? selectedEmployeeData : {}}
+          defaultData={employee}
           onClose={() => setShowModal(false)}
         />
       )}
-    </div>
     </>
   );
 }
 
+// ------------------------------------------------------------------
+// Tab 2: Salary Info
+// ------------------------------------------------------------------
 function SalaryInfoTab() {
   const { id } = useParams();
-
   const [employee, setEmployee] = useState(null);
-  const [message, setMessage] = useState("Loading...");
-
-
+  const [message, setMessage] = useState("Loading salary data...");
 
   useEffect(() => {
     if (!id) return;
-
     const fetchSalaryInfo = async () => {
       try {
-        const response = await fetch(`https://attendance-and-payroll-management.onrender.com/api/usersalaryinfo/${id}`);
-
+        const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5500/api";
+        const response = await fetch(`${apiBase}/usersalaryinfo/${id}`);
         if (!response.ok) {
-          setMessage("Salary data is not found for this user. Please add the user info.");
+          setMessage("No salary information available.");
           return;
         }
-
         const data = await response.json();
         setEmployee(data);
       } catch (error) {
         console.error("Error fetching salary info:", error);
-        setMessage("Something went wrong while fetching salary info.");
+        setMessage("Error loading data.");
       }
     };
-
     fetchSalaryInfo();
   }, [id]);
 
+  if (!employee) return (
+    <div className="flex flex-col items-center justify-center h-48 text-gray-500 gap-3">
+      <div className="p-3 bg-gray-50 rounded-full">
+        <DollarSign size={24} className="text-gray-400" />
+      </div>
+      <p>{message}</p>
+    </div>
+  );
+
+  const StatCard = ({ label, value, colorClass }) => (
+    <div className={`p-4 rounded-xl border ${colorClass} bg-opacity-50`}>
+      <p className="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">{label}</p>
+      <p className="text-xl font-bold">{value !== undefined ? `₹${value}` : '-'}</p>
+    </div>
+  );
+
   return (
-    <div className="space-y-6 text-gray-700">
-      {employee ? (
-        <>
-          <h3 className="text-xl font-semibold border-b pb-2">
-            User {employee.user_id} Salary Info
-          </h3>
+    <div className="space-y-8">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatCard
+          label="Gross Salary"
+          value={employee.gross_salary}
+          colorClass="bg-blue-50 border-blue-100 text-blue-700"
+        />
+        <StatCard
+          label="Net Salary (In Hand)"
+          value={employee.net_salary}
+          colorClass="bg-green-50 border-green-100 text-green-700"
+        />
+      </div>
 
-          {/* Personal Info */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">👤 Personal Details</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Full Name:</span> {employee.employee_name}</p>
-              <p><span className="font-medium">Employee ID:</span> {employee.employee_id}</p>
-              <p><span className="font-medium">Status:</span> <span className={`font-semibold ${employee.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>{employee.status || 'N/A'}</span></p>
-              <p><span className="font-medium">Joining Date:</span> {employee.joining_date}</p>
+      {/* Detailed Breakdown */}
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Allowances */}
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="bg-green-50/50 px-5 py-3 border-b border-green-100 flex items-center justify-between">
+            <h4 className="font-bold text-green-800 flex items-center gap-2">
+              <CheckCircle size={16} /> Allowances
+            </h4>
+          </div>
+          <div className="p-5 space-y-3">
+            <div className="flex justify-between text-sm"><span className="text-gray-600">Basic</span> <span className="font-semibold text-gray-900">₹{employee.basic}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-600">HRA</span> <span className="font-semibold text-gray-900">₹{employee.hra}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-600">DA</span> <span className="font-semibold text-gray-900">₹{employee.da}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-600">Performance Bonus</span> <span className="font-semibold text-gray-900">₹{employee.pb}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-600">LTA</span> <span className="font-semibold text-gray-900">₹{employee.lta}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-600">Fixed</span> <span className="font-semibold text-gray-900">₹{employee.fixed}</span></div>
+          </div>
+        </div>
+
+        {/* Deductions */}
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="bg-red-50/50 px-5 py-3 border-b border-red-100 flex items-center justify-between">
+            <h4 className="font-bold text-red-800 flex items-center gap-2">
+              <AlertCircle size={16} /> Deductions
+            </h4>
+          </div>
+          <div className="p-5 space-y-3">
+            <div className="flex justify-between text-sm"><span className="text-gray-600">Provident Fund (PF)</span> <span className="font-semibold text-red-600">-₹{employee.pf}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-600">Professional Tax</span> <span className="font-semibold text-red-600">-₹{employee.professionaltax}</span></div>
+            <div className="border-t border-dashed border-gray-200 mt-2 pt-2 flex justify-between text-sm font-bold">
+              <span className="text-gray-800">Total Deductions</span>
+              <span className="text-red-700">₹{employee.total_deductions}</span>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Salary Components - Allowances */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-green-600">💰 Salary Components (Allowances)</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Basic:</span> ₹{employee.basic || 0}</p>
-              <p><span className="font-medium">HRA:</span> ₹{employee.hra || 0}</p>
-              <p><span className="font-medium">DA (Dearness Allowance):</span> ₹{employee.da || 0}</p>
-              <p><span className="font-medium">PB (Performance Bonus):</span> ₹{employee.pb || 0}</p>
-              <p><span className="font-medium">LTA (Leave Travel Allow.):</span> ₹{employee.lta || 0}</p>
-              <p><span className="font-medium">Fixed Allowance:</span> ₹{employee.fixed || 0}</p>
-            </div>
-          </div>
-
-          {/* Deductions Info */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-red-600">📉 Deductions</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">PF (Amount):</span> ₹{employee.pf || 0}</p>
-              <p><span className="font-medium">Professional Tax:</span> ₹{employee.professionaltax || 0}</p>
-              <p><span className="font-medium">Total Deductions:</span> ₹{employee.total_deductions || 0}</p>
-            </div>
-          </div>
-
-          {/* Salary Summary */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-blue-600">📊 Salary Summary</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Gross Salary:</span> <span className="text-blue-600 font-semibold">₹{employee.gross_salary || 0}</span></p>
-              <p><span className="font-medium">Net Salary:</span> <span className="text-green-700 font-semibold">₹{employee.net_salary || 0}</span></p>
-            </div>
-          </div>
-
-          {/* Updates */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">🔄 Updates</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Updated By:</span> {employee.updated_by}</p>
-               <p><span className="font-medium">Last Update:</span> {(employee.last_update).split("T")[0]}</p>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="text-red-600 font-medium">{message}</p>
-        </>
-      )}
+      <div className="text-xs text-gray-400 text-center pt-4">
+        Last updated on {new Date(employee.last_update).toLocaleDateString()} by {employee.updated_by}
+      </div>
     </div>
   );
 }
 
+// ------------------------------------------------------------------
+// Tab 3: Change Password
+// ------------------------------------------------------------------
 function ChangePasswordTab() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -405,8 +402,6 @@ function ChangePasswordTab() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-
-    // ✅ Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
       setMessage("⚠️ Please fill in all fields.");
       return;
@@ -419,10 +414,10 @@ function ChangePasswordTab() {
     try {
       setLoading(true);
       setMessage("");
-
       const token = localStorage.getItem("token");
+      const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5500/api";
 
-      const res = await fetch("https://attendance-and-payroll-management.onrender.com/api/change-password", {
+      const res = await fetch(`${apiBase}/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -432,95 +427,98 @@ function ChangePasswordTab() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || "Error changing password.");
-
       setMessage("✅ Password updated successfully!");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
     } catch (err) {
-      setMessage(err.message);
+      setMessage(`❌ ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-5">
-      <h3 className="text-xl font-semibold border-b pb-2">Change Your Password</h3>
-      
+    <div className="max-w-md mx-auto py-4">
+      <div className="text-center mb-8">
+        <div className="bg-purple-100 p-3 rounded-full w-fit mx-auto mb-3">
+          <Lock size={24} className="text-purple-600" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900">Change Password</h3>
+        <p className="text-sm text-gray-500">Ensure your account uses a strong, unique password</p>
+      </div>
+
       <form onSubmit={handlePasswordChange} className="space-y-4">
-        <input
-          type="password"
-          placeholder="Current Password"
-          className="w-full p-3 border rounded-lg"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="New Password"
-          className="w-full p-3 border rounded-lg"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Confirm New Password"
-          className="w-full p-3 border rounded-lg"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
 
         <button
           type="submit"
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition w-full"
+          className="w-full py-2.5 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition flex justify-center items-center gap-2 mt-4"
           disabled={loading}
         >
-          {loading ? "Updating..." : "Update Password"}
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : "Update Password"}
         </button>
       </form>
 
       {message && (
-        <p className={`mt-3 text-sm font-medium ${
-          message.includes("✅") ? "text-green-600" : "text-red-600"
-        }`}>
+        <div className={`mt-6 p-3 rounded-lg text-sm font-medium text-center ${message.includes("✅") ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"
+          }`}>
           {message}
-        </p>
+        </div>
       )}
     </div>
   );
 }
 
-
+// ------------------------------------------------------------------
+// Modal for Updating Profile
+// ------------------------------------------------------------------
 const ProfileModal = ({ mode = "update", employeeId, defaultData = {}, onClose }) => {
-    const user = useSelector((state) => state.auth.user);
-    console.log("Hr data is",user)
-    const [formData, setFormData] = useState({
-    user_id:"",
-    username:"",
-    email:"",
-    mobile:"",  
-    address:"",
-    bankAccount:"",
-    gender:"",
-    IFSC:"",
-    emergencyContact:"",
-    emergencyContactname:"",
-   });
-
+  const user = useSelector((state) => state.auth.user);
+  const [formData, setFormData] = useState({
+    user_id: "", username: "", email: "", mobile: "", address: "",
+    bankAccount: "", gender: "", IFSC: "", emergencyContact: "", emergencyContactname: "",
+  });
   const [message, setMessage] = useState("");
-  
+  const [saving, setSaving] = useState(false);
 
-  // Pre-fill form for update
   useEffect(() => {
     if (mode === "update" && defaultData) {
       setFormData({ ...defaultData });
-    } else {
-      setFormData((prev) => ({ ...prev, employee_id: employeeId }));
     }
-  }, [defaultData, mode, employeeId]);
+  }, [defaultData, mode]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -528,61 +526,77 @@ const ProfileModal = ({ mode = "update", employeeId, defaultData = {}, onClose }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const url =`http://localhost:5500/api/update/${user.id}`;
-
-    const method = "PUT";
+    setSaving(true);
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5500/api";
+    const url = `${apiBase}/update/${user.id}`;
 
     try {
       const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-        
       });
-
       const result = await response.json();
-      console.log("result send is",result)
       if (!response.ok) throw new Error(result.message);
 
-      setMessage(result.message);
-      setTimeout(() => {
-        onClose(); // Close modal after success
-      }, 1000);
+      setMessage("✅ Profile updated successfully!");
+      setTimeout(() => onClose(), 1000);
     } catch (err) {
-      setMessage(err.message);
+      setMessage(`❌ ${err.message}`);
+    } finally {
+      setSaving(false);
     }
   };
+
+  const Input = ({ label, name, type = "text" }) => (
+    <div className="space-y-1">
+      <label className="text-xs font-semibold text-gray-500 uppercase">{label}</label>
+      <input
+        type={type}
+        name={name}
+        value={formData[name] || ""}
+        onChange={handleChange}
+        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition text-sm text-gray-800"
+      />
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white max-w-2xl w-full rounded-xl shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-3 right-4 text-lg text-gray-500 hover:text-red-600">✖</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative z-10 flex flex-col max-h-[90vh]">
 
-        <h2 className="text-xl font-semibold mb-4 text-center">
-          {mode === "add" ? "Add Salary Info" : "Update Salary Info"}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-3 text-sm">
-          <div className="grid grid-cols-2 gap-3">
-            <input type="text" name="employee_id" value={formData.user_id} onChange={handleChange} placeholder="Employee ID" disabled={mode === "update"} className="border p-2 rounded" />
-            <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Employee Name" className="border p-2 rounded" />
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="border p-2 rounded" />
-            <input type="text" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Mobile" className="border p-2 rounded" />
-            <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Address" className="border p-2 rounded" />
-            <input type="text" name="bankAccount" value={formData.bankAccount} onChange={handleChange} placeholder="Bank Account" className="border p-2 rounded" />
-            <input type="text" name="IFSC" value={formData.IFSC} onChange={handleChange} placeholder="IFSC Code" className="border p-2 rounded" />
-            <input type="text" name="emergencyContact" value={formData.emergencyContact} onChange={handleChange} placeholder="emergencyContact" className="border p-2 rounded" />
-            <input type="text" name="emergencyContactname" value={formData.emergencyContactname} onChange={handleChange} placeholder="emergencyContactname" className="border p-2 rounded" />
-          </div>
-
-          <button type="submit" className="w-full mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-            {mode === "add" ? "Add Info" : "Update Info"}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Edit2 size={20} className="text-purple-600" /> Update Profile
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+            <X size={24} />
           </button>
-        </form>
+        </div>
 
-        {message && <p className="text-center text-sm mt-3 text-green-600">{message}</p>}
+        <div className="p-6 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Full Name" name="username" />
+            <Input label="Email Address" name="email" type="email" />
+            <Input label="Mobile Number" name="mobile" />
+            <Input label="Address" name="address" />
+            <Input label="Bank Account" name="bankAccount" />
+            <Input label="IFSC Code" name="IFSC" />
+            <Input label="Emergency Contact Name" name="emergencyContactname" />
+            <Input label="Emergency Contact Number" name="emergencyContact" />
+
+            <div className="col-span-1 md:col-span-2 mt-4 flex gap-3 justify-end">
+              <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition">
+                Cancel
+              </button>
+              <button type="submit" disabled={saving} className="px-6 py-2.5 bg-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-200 hover:bg-purple-700 transition">
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
+          {message && <p className="text-center mt-4 font-medium text-green-600 animate-in fade-in slide-in-from-bottom-2">{message}</p>}
+        </div>
       </div>
     </div>
   );
