@@ -165,7 +165,19 @@ const Updatesalaryinfo = async (req, res) => {
     tax_percent,
     pf_percent,
     joining_date,
-    updated_by
+    updated_by,
+    // ✅ NEW FIELDS - Salary Components
+    basic,
+    da,
+    pb,
+    lta,
+    fixed,
+    pf,
+    professionaltax,
+    gross_salary,
+    net_salary,
+    total_deductions,
+    status
   } = req.body;
 
   if (!employee_id) {
@@ -177,15 +189,28 @@ const Updatesalaryinfo = async (req, res) => {
     const nowIST = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000);
 
     const updateFields = {
-      employee_name,
-      base_salary,
-      hra,
-      bonus,
-      tax_percent,
-      pf_percent,
-      joining_date,
+      // Old fields
+      ...(employee_name && { employee_name }),
+      ...(base_salary && { base_salary }),
+      ...(hra !== undefined && { hra }),
+      ...(bonus !== undefined && { bonus }),
+      ...(tax_percent !== undefined && { tax_percent }),
+      ...(pf_percent !== undefined && { pf_percent }),
+      ...(joining_date && { joining_date }),
+      // ✅ NEW fields
+      ...(basic !== undefined && { basic }),
+      ...(da !== undefined && { da }),
+      ...(pb !== undefined && { pb }),
+      ...(lta !== undefined && { lta }),
+      ...(fixed !== undefined && { fixed }),
+      ...(pf !== undefined && { pf }),
+      ...(professionaltax !== undefined && { professionaltax }),
+      ...(gross_salary !== undefined && { gross_salary }),
+      ...(net_salary !== undefined && { net_salary }),
+      ...(total_deductions !== undefined && { total_deductions }),
+      ...(status && { status }),
       last_update: nowIST,
-      updated_by
+      ...(updated_by && { updated_by })
     };
     
     const olddata= await db.collection('SalaryInfo').findOne({ employee_id });

@@ -34,7 +34,12 @@ const updateProfile = async (req, res) => {
     IFSC,
     emergencyContact,
     emergencyContactname,
+    // ✅ NEW FIELDS - Salary information
+    wage,
+    salary_components,
+    updated_by
   } = req.body;
+  
   // Dynamically construct update fields
   const updateFields = {};
 
@@ -47,21 +52,59 @@ const updateProfile = async (req, res) => {
   if (IFSC !== undefined) updateFields.IFSC = IFSC;
   if (emergencyContact !== undefined) updateFields.emergencyContact = emergencyContact;
   if (emergencyContactname !== undefined) updateFields.emergencyContactname = emergencyContactname;
+  // ✅ Add salary fields
+  if (wage !== undefined && wage > 0) updateFields.wage = parseFloat(wage);
+  if (salary_components !== undefined) updateFields.salary_components = salary_components;
 
   try {
     if (Object.keys(updateFields).length === 0) {
       return res.status(400).json({ message: 'No fields to update' });
     }
 
-    const result = await db.collection('users').updateOne(
+    // Update user document
+    const userResult = await db.collection('users').updateOne(
       { user_id: userId },
       { $set: updateFields }
     );
-    if (result.modifiedCount === 0) {
+    
+    if (userResult.modifiedCount === 0) {
       return res.status(404).json({ message: 'User not found or no changes made' });
     }
 
-    res.json({ message: 'Profile updated successfully' });
+    // ✅ Auto-update SalaryInfo collection if salary components are provided
+    if (wage && parseFloat(wage) > 0 && salary_components && Object.keys(salary_components).length > 0) {
+      const nowIST = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000);
+      
+      const salaryUpdateFields = {
+        base_salary: parseFloat(wage),
+        basic: salary_components.basic || 0,
+        hra: salary_components.hra || 0,
+        da: salary_components.da || 0,
+        pb: salary_components.pb || 0,
+        lta: salary_components.lta || 0,
+        fixed: salary_components.fixed || 0,
+        pf: Math.abs(salary_components.pf || 0),
+        professionaltax: Math.abs(salary_components.professionaltax || 0),
+        gross_salary: salary_components.totalGross || 0,
+        net_salary: salary_components.netSalary || 0,
+        total_deductions: salary_components.totalDeductions || 0,
+        last_update: nowIST,
+        updated_by: updated_by || "User Update"
+      };
+
+      await db.collection('SalaryInfo').updateOne(
+        { employee_id: userId },
+        { $set: salaryUpdateFields },
+        { upsert: true } // Create if doesn't exist
+      );
+      
+      console.log(`✅ SalaryInfo updated/created for employee: ${userId}`);
+    }
+
+    res.json({ 
+      message: 'Profile and salary information updated successfully',
+      updated: Object.keys(updateFields)
+    });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -253,9 +296,43 @@ const addUser = async (req, res) => {
       `,
     });
 
+    // ✅ AUTO-CREATE SALARY INFO IF WAGE PROVIDED
+    if (wage && parseFloat(wage) > 0 && finalSalaryComponents && Object.keys(finalSalaryComponents).length > 0) {
+      try {
+        const nowIST = new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000);
+        
+        await db.collection('SalaryInfo').insertOne({
+          employee_id: id,
+          employee_name: name,
+          base_salary: parseFloat(wage),
+          basic: finalSalaryComponents.basic || 0,
+          hra: finalSalaryComponents.hra || 0,
+          da: finalSalaryComponents.da || 0,
+          pb: finalSalaryComponents.pb || 0,
+          lta: finalSalaryComponents.lta || 0,
+          fixed: finalSalaryComponents.fixed || 0,
+          pf: Math.abs(finalSalaryComponents.pf || 0),
+          professionaltax: Math.abs(finalSalaryComponents.professionaltax || 0),
+          gross_salary: finalSalaryComponents.totalGross || 0,
+          net_salary: finalSalaryComponents.netSalary || 0,
+          total_deductions: finalSalaryComponents.totalDeductions || 0,
+          joining_date: joigningDate || new Date().toISOString().split('T')[0],
+          last_update: nowIST,
+          updated_by: "System - Employee Onboarding",
+          status: "Active",
+          created_at: nowIST
+        });
+        
+        console.log(`✅ Salary info auto-created for employee: ${id}`);
+      } catch (salaryError) {
+        console.error("⚠️ Warning: Could not auto-create salary info:", salaryError);
+        // Don't fail the user creation if salary info creation fails
+      }
+    }
+
     // ✅ Final Response
     res.status(201).json({
-      message: "User created & welcome email sent.",
+      message: "User created & welcome email sent. Salary structure auto-configured.",
       userId: result.insertedId,
     });
   } catch (error) {
