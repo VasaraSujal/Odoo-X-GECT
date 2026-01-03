@@ -1,101 +1,4 @@
-// import React from 'react';
-
-// import Header from '../../Components/Header'; // Adjust path if needed
-// import Sidebar from '../../Components/Sidebar'; // Adjust path if needed
-// import {
-//     BarChart,
-//     Bar,
-//     XAxis,
-//     YAxis,
-//     Tooltip,
-//     ResponsiveContainer
-// } from 'recharts';
-// import { Fingerprint } from 'lucide-react';
-
-// const data = [
-//     { name: 'Jan', Attendance: 24 },
-//     { name: 'Feb', Attendance: 27 },
-//     { name: 'Mar', Attendance: 17 },
-//     { name: 'Apr', Attendance: 20 },
-//     { name: 'May', Attendance: 23 },
-//     { name: 'Jun', Attendance: 0 },
-//     { name: 'Jul', Attendance: 0 },
-//     { name: 'Aug', Attendance: 0 },
-//     { name: 'Sep', Attendance: 0 },
-//     { name: 'Oct', Attendance: 0 },
-//     { name: 'Nov', Attendance: 0 },
-//     { name: 'Dec', Attendance: 0 },
-// ];
-
-// const MainContent = () => {
-//     return (
-//         <div className="min-h-screen bg-gray-100 flex flex-col">
-//             {/* Header at the top */}
-//             <Header />
-
-//             {/* Content below header */}
-//             <div className="flex flex-1">
-//                 {/* Sidebar */}
-//                 <Sidebar />
-
-
-//                 {/* Page Content */}
-//                 <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-//                     {/* Page Title */}
-//                     <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4 sm:mb-6">
-//                         Attendance
-//                     </h1>
-
-//                     {/* Biometric Card */}
-//                     <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row justify-around sm:items-center gap-6 sm:gap-0 mb-6 sm:mb-8">
-//                         <div className="flex justify-center">
-//                             <Fingerprint size={120} className="text-purple-600 sm:size-[180px]" />
-//                         </div>
-//                         <div className="flex flex-col items-start sm:items-start text-center sm:text-left">
-//                             <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
-//                                 Give me your Biometric for today's attendance
-//                             </h2>
-//                             <button className="px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-md text-purple-600 font-medium hover:shadow-md transition">
-//                                 Let's do it &rarr;
-//                             </button>
-//                         </div>
-//                     </div>
-
-//                     {/* Attendance Statistics */}
-//                     <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6">
-//                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-//                             <h2 className="text-md sm:text-lg font-semibold text-gray-800">
-//                                 Attendance Statistics
-//                             </h2>
-//                             <div className="flex items-center gap-2">
-//                                 <span className="text-sm text-purple-600 font-semibold">Attendance</span>
-//                                 <select className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
-//                                     <option>This Year</option>
-//                                     <option>This Month</option>
-//                                 </select>
-//                             </div>
-//                         </div>
-//                         <ResponsiveContainer width="100%" height={250}>
-//                             <BarChart data={data}>
-//                                 <XAxis dataKey="name" />
-//                                 <YAxis />
-//                                 <Tooltip />
-//                                 <Bar dataKey="Attendance" fill="#7c3aed" radius={[6, 6, 0, 0]} />
-//                             </BarChart>
-//                         </ResponsiveContainer>
-//                     </div>
-//                 </main>
-
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default MainContent;
-
 import React, { useState, useEffect } from 'react';
-import Header from '../../Components/Header';
-import Sidebar from '../../Components/Sidebar';
 import { useSelector } from 'react-redux';
 import {
   ResponsiveContainer,
@@ -108,9 +11,9 @@ import {
   Legend,
   Cell,
 } from 'recharts';
-import { CalendarDays, Check, Fingerprint } from 'lucide-react';
+import { CalendarDays, Check, Fingerprint, MapPin, X } from 'lucide-react';
 
-const MainContent = () => {
+const Attendance = () => {
   const [showModal, setShowModal] = useState(false);
   const [username, setUsername] = useState('');
   const [id, setId] = useState('');
@@ -141,7 +44,6 @@ const MainContent = () => {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        console.log("Location:", location);
 
         try {
           const res = await fetch("https://attendance-and-payroll-management.onrender.com/api/mark-attendance", {
@@ -176,7 +78,6 @@ const MainContent = () => {
         const attendanceRecords = await res.json();
 
         const presentDates = new Set(attendanceRecords.map(att => att.date));
-        console.log("Present Dates:", presentDates);
         const [year, month] = selectedMonth.split("-");
         const daysInMonth = new Date(Number(year), Number(month), 0).getDate();
 
@@ -184,7 +85,7 @@ const MainContent = () => {
           const day = String(i + 1).padStart(2, '0');
           const dateKey = `${selectedMonth}-${day}`;
           return {
-            name: `Day ${i + 1}`,
+            name: `${i + 1}`,
             Attendance: presentDates.has(dateKey) ? 1 : 0,
           };
         });
@@ -201,132 +102,153 @@ const MainContent = () => {
   }, [selectedMonth, user?.id]);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col relative">
-      <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-        <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">Attendance</h1>
+    <div className="space-y-6">
+      <div className='flex justify-between items-center'>
+        <div>
+          <h1 className="text-2xl font-bold text-text-main">Attendance</h1>
+          <p className="text-text-sub text-sm">Manage and view your attendance records.</p>
+        </div>
+      </div>
 
-        {/* Biometric Card */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col sm:flex-row justify-around sm:items-center gap-6 mb-8">
-          <div className="flex justify-center">
-            <Fingerprint size={120} className="text-purple-600 sm:size-[180px]" />
+      {/* Biometric Card */}
+      <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden relative group">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>
+        <div className="p-8 flex flex-col items-center justify-center text-center gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl scale-150 animate-pulse"></div>
+            <Fingerprint size={100} className="text-primary relative z-10" strokeWidth={1} />
           </div>
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
-              Give me your Biometric for today's attendance
-            </h2>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-md text-purple-600 font-medium hover:shadow-md transition"
+
+          <div className="max-w-md space-y-2">
+            <h2 className="text-xl font-bold text-text-main">Mark Today's Attendance</h2>
+            <p className="text-text-sub">Please utilize the biometric authentication system below to securely log your attendance for the day.</p>
+          </div>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-hover hover:shadow-primary/40 transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
+          >
+            <Fingerprint size={20} />
+            Authenticate Record
+          </button>
+        </div>
+      </div>
+
+      {/* Attendance Statistics */}
+      <div className="bg-surface rounded-2xl shadow-sm border border-border p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h2 className="text-lg font-bold text-text-main flex items-center gap-2">
+            <CalendarDays size={20} className='text-gray-400' />
+            Attendance History
+          </h2>
+          <div className="relative">
+            <select
+              className="appearance-none bg-gray-50 border border-border text-text-main text-sm rounded-xl px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-gray-300 transition-colors cursor-pointer"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
             >
-              Let's do it &rarr;
-            </button>
+              <option value="2025-06">June 2025</option>
+              <option value="2025-05">May 2025</option>
+              <option value="2025-04">April 2025</option>
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
           </div>
         </div>
 
-        {/* Attendance Statistics */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <h2 className="text-md sm:text-lg font-semibold text-gray-800">
-              Attendance Statistics
-            </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-purple-600 font-semibold">Month</span>
-              <select
-                className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-              >
-                <option value="2025-06">June 2025</option>
-                <option value="2025-05">May 2025</option>
-                <option value="2025-04">April 2025</option>
-              </select>
-            </div>
-          </div>
-
-          {loading ? (
-            <p className="text-center text-gray-500">Loading chart...</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        {loading ? (
+          <div className='h-[300px] flex items-center justify-center text-gray-400'>Loading chart data...</div>
+        ) : (
+          <div className='h-[300px] w-full'>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} barGap={0} barSize={12}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
                 <XAxis
                   dataKey="name"
-                  interval={0}
-                  angle={0}
-                  height={70}
-                  tick={{ fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                  dy={10}
                 />
-                <YAxis ticks={[0, 1]} domain={[0, 1]} />
+                <YAxis
+                  hide
+                  ticks={[0, 1, 2]}
+                  domain={[0, 1.2]}
+                />
                 <Tooltip
-                  formatter={(value) => (value === 1 ? "Present" : "Absent")}
-                  labelFormatter={(label) => `Date: ${label}`}
+                  cursor={{ fill: '#F9FAFB' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                  formatter={(value) => [value === 1 ? <span className='text-green-600 font-bold'>Present</span> : <span className='text-red-500 font-bold'>Absent</span>, "Status"]}
                 />
                 <Legend
-                  payload={[
-                    { value: "Present", type: "square", color: "#10b981", id: "present" },
-                    { value: "Absent", type: "square", color: "#ef4444", id: "absent" },
-                  ]}
+                  verticalAlign='top'
+                  align='right'
+                  iconType='circle'
+                  wrapperStyle={{ paddingBottom: '20px', fontSize: '12px' }}
                 />
-                <Bar dataKey="Attendance" radius={[8, 8, 0, 0]} barSize={20}>
+                <Bar dataKey="Attendance" radius={[4, 4, 4, 4]} name="Attendance Record">
                   {chartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.Attendance === 1 ? "#10b981" : "#ef4444"}
+                      fill={entry.Attendance === 1 ? "#10b981" : "#F3F4F6"}
                     />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          )}
-        </div>
-      </main>
+          </div>
+        )}
+      </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-6 w-96 rounded-xl shadow-lg text-center space-y-4 relative">
-            <div className="flex justify-center">
-              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-800">
-                <CalendarDays className="w-5 h-5 text-indigo-600" />
-                Mark Your Attendance
-              </h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-surface w-full max-w-md rounded-3xl shadow-2xl p-6 relative scale-100 transition-transform">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex flex-col items-center mb-6">
+              <div className='w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary'>
+                <MapPin size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-text-main text-center">Verify Identity</h2>
+              <p className='text-text-sub text-center text-sm px-4'>Enter your credentials to confirm your identity and capture your current location.</p>
             </div>
 
-            <input
-              type="text"
-              placeholder="Enter your id"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            />
-            <input
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            />
-            {/* <button
-              onClick={handleAttendance}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-            >
-              <Check /> Mark Attendance
-            </button> */}
-            <div className="flex justify-center">
-              <button
-                onClick={handleAttendance}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-              >
-                <Check className="w-5 h-5" />
-                Mark Attendance
-              </button>
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-xs font-bold text-text-sub uppercase mb-1 ml-1'>Employee ID</label>
+                <input
+                  type="text"
+                  placeholder="e.g. EMP-1234"
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-border rounded-xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                />
+              </div>
+              <div>
+                <label className='block text-xs font-bold text-text-sub uppercase mb-1 ml-1'>Username</label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-border rounded-xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                />
+              </div>
             </div>
 
             <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-2 right-3 text-gray-500 hover:text-red-500 text-xl"
+              onClick={handleAttendance}
+              className="w-full mt-8 py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
             >
-              ✕
+              <Check className="w-5 h-5" />
+              Confirm & Mark Attendance
             </button>
           </div>
         </div>
@@ -334,10 +256,11 @@ const MainContent = () => {
 
       {/* Toast */}
       {toast.message && (
-        <div className={`fixed top-6 right-3 px-4 py-3 rounded-md shadow-lg text-white z-50
-          ${toast.type === 'success' ? 'bg-green-500' :
-            toast.type === 'error' ? 'bg-red-500' : 'bg-yellow-500'}`}
+        <div className={`fixed top-6 right-6 px-6 py-4 rounded-xl shadow-xl text-white font-medium z-50 flex items-center gap-3 animate-slideIn
+          ${toast.type === 'success' ? 'bg-green-600' :
+            toast.type === 'error' ? 'bg-red-500' : 'bg-primary'}`}
         >
+          {toast.type === 'loading' && <div className='w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin'></div>}
           {toast.message}
         </div>
       )}
@@ -345,4 +268,4 @@ const MainContent = () => {
   );
 };
 
-export default MainContent;
+export default Attendance;

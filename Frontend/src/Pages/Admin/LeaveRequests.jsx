@@ -56,7 +56,7 @@ const LeaveRequests = () => {
                 {/* Filters & Search */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                     <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
-                        {["Pending", "Approved", "Rejected", "All"].map((status) => (
+                        {["All","Pending", "Approved", "Rejected", ].map((status) => (
                             <button
                                 key={status}
                                 onClick={() => setFilter(status)}

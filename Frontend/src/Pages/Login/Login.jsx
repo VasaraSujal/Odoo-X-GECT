@@ -1,49 +1,3 @@
-// import react from 'react';
-// import { useState } from 'react';
-
-// const Login =()=>{
-// const [id, setId] = useState('');
-// const [username, setUsername] = useState('');
-// const [password, setPassword] = useState('');
-//     return(
-//         <>
-//             <div className='flex flex-row  justify-between items-center h-screen '>
-//                 <div className='flex flex-col justify-center items-center w-2/5 h-full'>
-//                <div className='flex justify-start pl-3 pt-3 w-full'>
-//                  <img src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748249798/Attendance%20And%20Payroll%20Managment/eanj5h57izb4wsvgkzhc.png" alt="" />
-//                </div>
-//              <div className='w-4/5 h-full flex justify-center items-center'>
-//                 <div className='flex flex-col justify-center w-4/5'>
-//                     <h1 className='text-3xl font-bold'>Sign-in</h1>
-//                     <form className='flex flex-col mt-4 w-4/4'>
-//                         <input type="text" placeholder='id*' className='border border-gray-300 p-2 mb-2 rounded' name='id' value={id}   onChange={(e) => setId(e.target.value)} />
-
-//                         <input type="password" placeholder='Username*' className='border border-gray-300 p-2 mb-2 rounded' name='Username' value={username} onChange={(e)=>setUsername(e.target.value)} />
-
-//                         <input type="password" placeholder='Password*' className='border border-gray-300 p-2 mb-2 rounded' name='password' value={password} onChange={(e)=>setPassword(e.target.value)}/>
-
-//                         <button type="submit" className='bg-blue-500 text-white p-2 rounded'>Login</button>
-
-//                     </form>
-//                 </div>               
-//              </div>
-//              <span className='mb-5'>Terms and Condition • Privacy Policy</span>
-//                 </div>
-
-//               <div className=' bg-gray-100 h-full w-3/5 flex justify-center items-center'>
-//              <img src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748238957/Attendance%20And%20Payroll%20Managment/y45ltl4yfgxsksuetayk.png" alt="Login page" className='' />
-//           </div>
-//           <div>
-            
-//           </div>
-//             </div>
-
-
-//         </>
-//     )
-// };
-// export default Login;
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
@@ -62,13 +16,13 @@ const Login = () => {
   // ✅ CLEAR OLD TOKEN WHEN LOGIN PAGE LOADS
   useEffect(() => {
     console.log("🧹 Clearing old token...");
-    localStorage.removeItem("token"); 
-    localStorage.removeItem("role"); 
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
   }, []);
 
   const handelLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); 
+    setLoading(true);
     const userData = { username, password, id };
 
     try {
@@ -111,99 +65,109 @@ const Login = () => {
 
     } catch (error) {
       console.error("Error during login:", error);
-         toast.error("An error occurred while logging in. Please try again.", {
+      toast.error("An error occurred while logging in. Please try again.", {
         position: "bottom-right",
       });
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex min-h-screen bg-surface">
       {/* Left Side (Logo + Form + Footer) */}
-      <div className="flex flex-col w-full md:w-2/5 h-full">
+      <div className="flex flex-col justify-center items-center w-full md:w-5/12 lg:w-4/12 px-6 py-12 relative z-10">
+
         {/* LOGO */}
-        <div className="order-1 md:order-1 flex justify-start pl-3 pt-3 w-full">
-          <img src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748249798/Attendance%20And%20Payroll%20Managment/eanj5h57izb4wsvgkzhc.png" alt="Logo" />
+        <div className="absolute top-8 left-8">
+          <img
+            src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748249798/Attendance%20And%20Payroll%20Managment/eanj5h57izb4wsvgkzhc.png"
+            alt="Logo"
+            className="h-10 w-auto"
+          />
         </div>
 
-        {/* IMAGE (on mobile, placed after logo) */}
-        <div className="order-2 md:hidden flex justify-center items-center">
-          <img src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748238957/Attendance%20And%20Payroll%20Managment/y45ltl4yfgxsksuetayk.png" alt="Login Image" />
-        </div>
+        {/* Content Wrapper */}
+        <div className="w-full max-w-sm">
+          <div className="mb-10">
+            <h1 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Welcome back</h1>
+            <p className="text-text-sub">Please enter your details to sign in.</p>
+          </div>
 
-        {/* FORM */}
-        <div className="order-3 md:order-2 flex justify-center items-center flex-1">
-          <div className="w-9/12 md:w-3/5">
-            <h1 className="text-3xl font-bold">Sign-in</h1>
-            <form className="flex flex-col mt-4" onSubmit={handelLogin}>
+          <form className="space-y-5" onSubmit={handelLogin}>
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-1">ID</label>
               <input
                 type="text"
-                placeholder="id*"
-                className="border border-gray-300 p-2 mb-2 rounded w-full"
+                placeholder="Enter your ID"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none text-text-main placeholder-gray-400"
                 value={id}
                 onChange={(e) => setId(e.target.value)}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-1">Username</label>
               <input
                 type="text"
-                placeholder="Username*"
-                className="border border-gray-300 p-2 mb-2 rounded w-full"
+                placeholder="Enter your username"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none text-text-main placeholder-gray-400"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-1">Password</label>
               <input
                 type="password"
-                placeholder="Password*"
-                className="border border-gray-300 p-2 mb-2 rounded w-full"
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none text-text-main placeholder-gray-400"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-<button
-  type="submit"
-  className={`flex justify-center items-center gap-2 p-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-500"}`}
-  disabled={loading} // ✅ disable while loading
->
-  {loading && (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  )}
-  {loading ? "Logging in..." : "Login"}
-</button>
-            </form>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full flex justify-center items-center py-3.5 px-4 rounded-xl text-white font-semibold text-lg hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] transition-all duration-200 ${loading ? "bg-primary/70 cursor-not-allowed" : "bg-primary hover:bg-primary-hover"
+                }`}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                  <span>Logging in...</span>
+                </div>
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center text-xs text-gray-400">
+            <span className="cursor-pointer hover:text-primary transition-colors">Terms and Conditions</span>
+            <span className="mx-2">•</span>
+            <span className="cursor-pointer hover:text-primary transition-colors">Privacy Policy</span>
           </div>
         </div>
+      </div>
 
-        {/* FOOTER */}
-        <div className="order-4 md:order-3 mb-8 text-center text-sm">
-          Terms and Conditions • Privacy Policy
+      {/* Right Side (Image/Art) */}
+      <div className="hidden md:flex md:w-7/12 lg:w-8/12 bg-accent relative overflow-hidden items-center justify-center p-12">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/20" />
+        <div className="relative z-10 w-full max-w-2xl transform hover:scale-[1.02] transition-transform duration-500">
+          <img
+            src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748238957/Attendance%20And%20Payroll%20Managment/y45ltl4yfgxsksuetayk.png"
+            alt="Login Illustration"
+            className="w-full h-auto drop-shadow-2xl rounded-2xl"
+          />
         </div>
       </div>
 
-      {/* RIGHT SIDE IMAGE (desktop only) */}
-      <div className="hidden md:flex md:order-2 w-3/5 h-full justify-center items-center bg-gray-100">
-        <img src="https://res.cloudinary.com/doqzxuxb1/image/upload/v1748238957/Attendance%20And%20Payroll%20Managment/y45ltl4yfgxsksuetayk.png" alt="Login Image" />
-      </div>
-
-      {/* ✅ Toast Notifications */}
       <ToastContainer />
     </div>
   );

@@ -1,42 +1,153 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import {cacheUser} from '../../Redux/Slice'
-import { FaDownload, FaEnvelope, FaPhone, FaGlobe, FaCalendarAlt,FaRupeeSign,FaRegClock } from "react-icons/fa";
-import { CgProfile } from "react-icons/cg";
-import "chart.js/auto";
-
+import { cacheUser } from '../../Redux/Slice';
+import {
+  Mail, Phone, Globe, Calendar, DollarSign, Clock,
+  Briefcase, MapPin, User, Building, Lock, Edit3, X
+} from "lucide-react";
 
 const Emprofile = () => {
   const [tab, setTab] = useState("Personal Info");
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-64px)]">
-          <Profile />
-          <div className="flex-1 bg-white p-6 rounded-2xl shadow-md flex flex-col">
-            
-            {/* 🔹 Add new tab for Change Password */}
-            <nav className="flex gap-4 border-b pb-3 mb-4 text-sm font-medium">
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-text-main">My Profile</h1>
+      <div className="flex flex-col lg:flex-row gap-6">
+        <Profile />
+        <div className="flex-1 bg-surface rounded-2xl shadow-sm border border-border flex flex-col overflow-hidden">
+
+          {/* Tabs */}
+          <div className="border-b border-border px-6 pt-4">
+            <nav className="flex gap-6 text-sm font-medium">
               {["Personal Info", "Salary Info", "Change Password"].map((t) => (
                 <button
                   key={t}
-                  className={`capitalize px-4 py-2 rounded-lg transition ${
-                    tab === t ? "bg-indigo-100 text-indigo-600" : "hover:bg-gray-100"
-                  }`}
+                  className={`pb-3 border-b-2 transition-colors duration-200 ${tab === t
+                    ? "border-primary text-primary"
+                    : "border-transparent text-text-sub hover:text-text-main"
+                    }`}
                   onClick={() => setTab(t)}
                 >
-                  {t.replace("info", " Info")}
+                  {t}
                 </button>
               ))}
             </nav>
+          </div>
 
-            {/* 🔹 Render Tabs */}
-            <div className="flex-1 overflow-y-auto">
-              {tab === "Personal Info" && <InfoTab />}
-              {tab === "Salary Info" && <SalaryInfoTab />}
-              {tab === "Change Password" && <ChangePasswordTab />}
+          {/* Tab Content */}
+          <div className="p-6">
+            {tab === "Personal Info" && <InfoTab />}
+            {tab === "Salary Info" && <SalaryInfoTab />}
+            {tab === "Change Password" && <ChangePasswordTab />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Profile = () => {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const usersdata = useSelector((state) => state.auth.usersdata);
+  const [employee, setEmployee] = useState(null);
+
+  useEffect(() => {
+    if (usersdata[id]) {
+      setEmployee(usersdata[id]);
+    } else {
+      const FetchEmployee = async () => {
+        try {
+          const response = await fetch(`https://attendance-and-payroll-management.onrender.com/api/users/${id}`);
+          if (!response.ok) throw new Error("Failed to fetch employees");
+          const data = await response.json();
+          setEmployee(data.user);
+          dispatch(cacheUser({ id, userData: data.user }));
+        } catch (error) {
+          console.error("Error fetching employees:", error);
+        }
+      }
+      FetchEmployee();
+    }
+  }, [id, dispatch, usersdata]);
+
+  if (!employee) return (
+    <div className="bg-surface w-full lg:w-1/4 rounded-2xl shadow-sm border border-border p-6 flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+
+  return (
+    <div className="bg-surface w-full lg:w-1/4 rounded-2xl shadow-sm border border-border p-6 h-fit space-y-6">
+      {/* Profile Header */}
+      <div className="flex flex-col items-center text-center pb-6 border-b border-border">
+        <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-sm">
+          <User size={40} />
+        </div>
+        <h3 className="text-xl font-bold text-text-main mb-1">{employee.username}</h3>
+        <p className="text-sm text-text-sub font-medium">{employee.role || "Employee"}</p>
+      </div>
+
+      {/* Info Section */}
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+          <div className="p-2 bg-white rounded-lg border border-border shadow-sm text-primary">
+            <Briefcase size={16} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-text-main">{employee.role}</p>
+            <p className="text-xs text-text-sub">Department</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+          <div className="p-2 bg-white rounded-lg border border-border shadow-sm text-green-600">
+            <DollarSign size={16} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-green-600">₹{employee.salary}</p>
+            <p className="text-xs text-text-sub">Salary</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+          <div className="p-2 bg-white rounded-lg border border-border shadow-sm text-orange-500">
+            <Clock size={16} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-text-main">{employee.employmentType}</p>
+            <p className="text-xs text-text-sub">Type</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+          <div className="p-2 bg-white rounded-lg border border-border shadow-sm text-blue-500">
+            <Calendar size={16} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-text-main">{employee.joigningDate}</p>
+            <p className="text-xs text-text-sub">Joined</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Section */}
+      <div className="pt-4 border-t border-border">
+        <h4 className="text-xs font-bold uppercase text-text-sub mb-4 tracking-wider">Contact Details</h4>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Mail size={16} className="text-text-sub" />
+            <div>
+              <p className="text-xs text-text-sub">Email</p>
+              <p className="text-sm text-text-main">{employee.email}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Phone size={16} className="text-text-sub" />
+            <div>
+              <p className="text-xs text-text-sub">Phone</p>
+              <p className="text-sm text-text-main">{employee.mobile}</p>
             </div>
           </div>
         </div>
@@ -45,137 +156,24 @@ const Emprofile = () => {
   );
 };
 
-
-const Profile = () =>{
-  const {id}=useParams();      
-  console.log(id)
-  const dispatch = useDispatch();
-  const usersdata = useSelector((state) => state.auth.usersdata);
-  console.log(usersdata)
-  const [employee,setEmployee]=useState(null)
-console.log("1. Profile rendered");
-useEffect(()=>{
-if (usersdata[id]){
-  console.log("Loaded from cache",usersdata)
-    console.log("2. Profile useEffect triggered");
-  setEmployee(usersdata[id])
-}else{
-const FetchEmployee= async()=>{
-  try{
-  
-    
-    const response= await fetch(`https://attendance-and-payroll-management.onrender.com/api/users/${id}`);
-    
-      if(!response.ok){
-            throw new Error("Failed to fetch employees");
-      }
-       const data=await response.json()
-       setEmployee(data.user)
-       dispatch(cacheUser({ id, userData: data.user }));
-       console.log('Fetching the data from api')
-         
-  }catch(error){
-  console.error("Error fetching employees:", error);
-  }
-}
-FetchEmployee();
-};
-},[id,dispatch,cacheUser])
-
- if (!employee) return <p>Loading...</p>;
-console.log(employee)
-
-  return (
- <div className="bg-white w-full lg:w-1/5 rounded-2xl shadow-md p-6 text-sm text-gray-700 space-y-6">
-  {/* Profile Header */}
-  <div className="flex flex-col items-center text-center">
-      <img src="https://i.pravatar.cc/100?img=56" alt="Employee" className="w-24 h-24 rounded-full mb-4 shadow" />
-      <h3 className="text-lg font-semibold">{employee.username}</h3>
-      <p className="text-sm text-gray-500">UX Designer</p>
+const InfoSection = ({ title, icon: Icon, children }) => (
+  <div className="bg-gray-50 rounded-xl p-5 border border-border">
+    <div className="flex items-center gap-2 mb-4 border-b border-border/50 pb-2">
+      <Icon size={18} className="text-primary" />
+      <h4 className="font-bold text-text-main text-sm uppercase tracking-wide">{title}</h4>
     </div>
-
-  {/* Info Section */}
-  <div>
-    <h4 className="text-xs font-semibold text-gray-500 mb-3">Info</h4>
-    <div className="space-y-4">
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-        <FaEnvelope className="text-gray-500 mt-1" />
-        </div>
-        <div>
-          <p className="text-sm font-medium">{employee.role}</p>
-          <p className="text-xs text-gray-400">Department</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-        <FaRupeeSign className="text-gray-500 mt-1" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-green-600">₹{employee.salary}</p>
-          <p className="text-xs text-gray-400">Salary</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-        <FaRegClock  className="text-gray-500 mt-1" />
-        </div>
-        <div>
-          <p className="text-sm font-medium">Regular</p>
-          <p className="text-xs text-gray-400">{employee.employmentType}</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-gray-100 rounded-md">
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2"
-               viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round"
-               d="M8 7V3m8 4V3m-9 8h10m-10 4h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        </div>
-        <div>
-          <p className="text-sm font-medium">{employee.joigningDate}</p>
-          <p className="text-xs text-gray-400">Joining Date</p>
-        </div>
-      </div>
+    <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+      {children}
     </div>
   </div>
+);
 
-  {/* Contact Section */}
-  <div>
-    <h4 className="text-xs font-semibold text-gray-500 mb-3">Contact</h4>
-    <div className="space-y-3">
-      <div className="flex items-start gap-3">
-        <FaEnvelope className="text-gray-500 mt-1" />
-        <div>
-          <p className="text-xs text-gray-500">Email</p>
-          <p className="text-sm">{employee.email}</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <FaPhone className="text-gray-500 mt-1" />
-        <div>
-          <p className="text-xs text-gray-500">Phone</p>
-          <p className="text-sm">{employee.mobile}</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <FaGlobe className="text-gray-500 mt-1" />
-        <div>
-          <p className="text-xs text-gray-500">Website</p>
-          <a href="https://bit.ly/3uOJF79" className="text-sm text-blue-600 underline">
-            https://bit.ly/3uOJF79
-          </a>
-        </div>
-      </div>
-    </div>
+const InfoItem = ({ label, value, fullWidth = false }) => (
+  <div className={fullWidth ? "col-span-2" : ""}>
+    <p className="text-xs text-text-sub uppercase font-bold mb-1">{label}</p>
+    <p className="text-text-main font-medium">{value || 'N/A'}</p>
   </div>
-</div>
-
-)};
+);
 
 function InfoTab() {
   const { id } = useParams();
@@ -184,125 +182,95 @@ function InfoTab() {
   const [showModal, setShowModal] = useState(false);
   const [formMode, setFormMode] = useState("add");
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
-   
+
   const userFromStore = useSelector((state) => state.auth.usersdata[id]);
-  console.log("3. InfoTab rendered");
 
   useEffect(() => {
     if (userFromStore) {
       setEmployee(userFromStore);
-      console.log("Fatching data from cach in info tab")
-        console.log("4. InfoTab useEffect triggered (cache check)");
-    }else{
-    setMessage("User data is not found for this user. Please add the user info.");
-    return;
+    } else {
+      setMessage("User data is not found. Please add info.");
     }
   }, [userFromStore]);
 
-    const openModal = (mode, data = null) => {
+  const openModal = (mode, data = null) => {
     setFormMode(mode);
     setSelectedEmployeeData(data);
     setShowModal(true);
-  };  
-  
-  if (!employee) return <p>Loading...</p>;
+  };
+
+  if (!employee) return <div className="text-center py-10 text-text-sub">{message}</div>;
 
   return (
     <>
-    <div className="space-y-5 text-gray-700">
-      {employee ? (
-        <>
-          <h3 className="text-xl font-semibold border-b pb-2">
-            User {employee.user_id} Profile Info
-          </h3>
-
-          {/* Personal Info */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-center pb-2">
           <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">👤 Personal Details</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Full Name:</span> {employee.username}</p>
-              <p><span className="font-medium">Employee ID:</span> {employee.user_id}</p>
-              <p><span className="font-medium">Base Salary:</span> ₹{employee.salary}</p>
-              <p><span className="font-medium">Joining Date:</span> {employee.joigningDate}</p>
-            </div>
+            <h3 className="text-lg font-bold text-text-main">
+              Profile Information
+            </h3>
+            <p className="text-sm text-text-sub">Manage your personal and employment details.</p>
           </div>
-
-       {/* Contact Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">📞 Contact Information</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">Phone:</span> {employee.mobile || 'N/A'}</p>
-          <p><span className="font-medium">Email:</span> {employee.email || 'N/A'}</p>
-          <p className="col-span-2"><span className="font-medium">Address:</span> {employee.address || 'N/A'}</p>
+          <button
+            onClick={() => openModal("update", employee)}
+            className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all flex items-center gap-2 active:scale-95"
+          >
+            <Edit3 size={16} />
+            Edit Profile
+          </button>
         </div>
-      </div>
 
-      {/* Job Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">💼 Job Details</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">Employee ID:</span> {employee.user_id}</p>
-          <p><span className="font-medium">Designation:</span> {employee.designation}</p>
-          <p><span className="font-medium">Attendance Type:</span> {employee.attendanceType}</p>
-          <p><span className="font-medium">Joining Date:</span> {employee.joigningDate}</p>
-        </div>
-      </div>
+        <div className="grid gap-6">
+          <InfoSection title="Personal Details" icon={User}>
+            <InfoItem label="Full Name" value={employee.username} />
+            <InfoItem label="Employee ID" value={employee.user_id} />
+            <InfoItem label="Gender" value={employee.gender} />
+            <InfoItem label="Date of Birth/Joining" value={employee.joigningDate} />
+          </InfoSection>
 
-      {/* Emergency Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">🚨 Emergency Contact</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">Name:</span> {employee.emergencyContactname}</p>
-          <p><span className="font-medium">Contact:</span> {employee.emergencyContact}</p>
-        </div>
-      </div>
+          <InfoSection title="Contact Information" icon={Phone}>
+            <InfoItem label="Phone Number" value={employee.mobile} />
+            <InfoItem label="Email Address" value={employee.email} />
+            <InfoItem label="Residential Address" value={employee.address} fullWidth />
+          </InfoSection>
 
-            {/* Emergency Info */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-indigo-600">Bank Info</h4>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <p><span className="font-medium">BankAccount No:</span> {employee.bankAccount}</p>
-          <p><span className="font-medium">IFSC:</span> {employee.IFSC}</p>
-        </div>
-      </div>
+          <InfoSection title="Job Details" icon={Briefcase}>
+            <InfoItem label="Designation" value={employee.designation} />
+            <InfoItem label="Department" value={employee.role} />
+            <InfoItem label="Attendance Type" value={employee.attendanceType} />
+            <InfoItem label="Employment Type" value={employee.employmentType} />
+          </InfoSection>
 
-          {/* Buttons */}
-          <div className="pt-2">
-            <button
-              onClick={() => openModal("update", employee)}
-              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-            >
-              ✏️ Update Your Profile
-            </button>
+          <div className="grid md:grid-cols-2 gap-6">
+            <InfoSection title="Emergency Contact" icon={Phone}>
+              <InfoItem label="Contact Name" value={employee.emergencyContactname} />
+              <InfoItem label="Phone Number" value={employee.emergencyContact} />
+            </InfoSection>
+
+            <InfoSection title="Financial Details" icon={DollarSign}>
+              <InfoItem label="Bank Account" value={employee.bankAccount} />
+              <InfoItem label="IFSC Code" value={employee.IFSC} />
+            </InfoSection>
           </div>
-        </>
-      ) : (
-        <>
-          <p className="text-red-600 font-medium">{message}</p>
-        </>
-      )}
+        </div>
 
-      {/* Modal */}
-      {showModal && (
-        <ProfileModal
-          mode={formMode}
-          employeeId={id}
-          defaultData={formMode === "update" ? selectedEmployeeData : {}}
-          onClose={() => setShowModal(false)}
-        />
-      )}
-    </div>
+        {showModal && (
+          <ProfileModal
+            mode={formMode}
+            employeeId={id}
+            defaultData={formMode === "update" ? selectedEmployeeData : {}}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+      </div>
     </>
   );
 }
 
 function SalaryInfoTab() {
   const { id } = useParams();
-
   const [employee, setEmployee] = useState(null);
-  const [message, setMessage] = useState("Loading...");
-
-
+  const [message, setMessage] = useState("Loading salary information...");
 
   useEffect(() => {
     if (!id) return;
@@ -312,7 +280,7 @@ function SalaryInfoTab() {
         const response = await fetch(`https://attendance-and-payroll-management.onrender.com/api/usersalaryinfo/${id}`);
 
         if (!response.ok) {
-          setMessage("Salary data is not found for this user. Please add the user info.");
+          setMessage("Salary data not found. Please contact HR.");
           return;
         }
 
@@ -320,92 +288,70 @@ function SalaryInfoTab() {
         setEmployee(data);
       } catch (error) {
         console.error("Error fetching salary info:", error);
-        setMessage("Something went wrong while fetching salary info.");
+        setMessage("Unable to load salary information.");
       }
     };
 
     fetchSalaryInfo();
   }, [id]);
 
+  if (!employee) return <div className="text-center py-10 text-text-sub">{message}</div>;
+
   return (
-    <div className="space-y-6 text-gray-700">
-      {employee ? (
-        <>
-          <h3 className="text-xl font-semibold border-b pb-2">
-            User {employee.user_id} Salary Info
-          </h3>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-bold text-text-main">Salary Breakdown</h3>
+        <p className="text-sm text-text-sub">Detailed view of your compensation package.</p>
+      </div>
 
-          {/* Personal Info */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">👤 Personal Details</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Full Name:</span> {employee.employee_name}</p>
-              <p><span className="font-medium">Employee ID:</span> {employee.employee_id}</p>
-              <p><span className="font-medium">Base Salary:</span> ₹{employee.base_salary}</p>
-              <p><span className="font-medium">Joining Date:</span> {employee.joining_date}</p>
-            </div>
-          </div>
+      <div className="grid gap-6">
+        <InfoSection title="Compensation" icon={DollarSign}>
+          <InfoItem label="Base Salary" value={`₹${employee.base_salary}`} />
+          <InfoItem label="Bonus" value={`₹${employee.bonus}`} />
+          <InfoItem label="HRA" value={`₹${employee.hra}`} />
+          <InfoItem label="Total Monthly Salary" value={`₹${Number(employee.base_salary) + Number(employee.bonus) + Number(employee.hra)}`} />
+        </InfoSection>
 
-          {/* Bonus Info */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">💰 Bonus</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Bonus:</span> ₹{employee.bonus}</p>
-              <p><span className="font-medium">HRA:</span> ₹{employee.hra}</p>
-            </div>
-          </div>
+        <InfoSection title="Deductions" icon={Building}>
+          <InfoItem label="Tax Percentage" value={`${employee.tax_percent}%`} />
+          <InfoItem label="Provident Fund (PF)" value={`${employee.pf_percent}%`} />
+        </InfoSection>
 
-          {/* Deductions Info */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">➖ Deductions</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Tax Percent:</span> {employee.tax_percent}%</p>
-              <p><span className="font-medium">PF Percent:</span> {employee.pf_percent}%</p>
-            </div>
-          </div>
-
-          {/* Updates */}
-          <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">🔄 Updates</h4>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Updated By:</span> {employee.updated_by}</p>
-               <p><span className="font-medium">Last Update:</span> {(employee.last_update).split("T")[0]}</p>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="text-red-600 font-medium">{message}</p>
-        </>
-      )}
+        <div className="bg-primary/5 rounded-xl p-4 border border-primary/20 flex justify-between items-center text-xs text-primary font-medium">
+          <span>Last Updated: {(employee.last_update || "").split("T")[0]}</span>
+          <span>Updated By: {employee.updated_by}</span>
+        </div>
+      </div>
     </div>
   );
 }
 
 function ChangePasswordTab() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+    message: "",
+    loading: false
+  });
+
+  const handleChange = (e) => setState(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    const { currentPassword, newPassword, confirmPassword } = state;
 
-    // ✅ Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setMessage("⚠️ Please fill in all fields.");
+      setState(prev => ({ ...prev, message: "⚠️ Please fill in all fields." }));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setMessage("❌ New passwords do not match!");
+      setState(prev => ({ ...prev, message: "❌ New passwords do not match!" }));
       return;
     }
 
     try {
-      setLoading(true);
-      setMessage("");
-
+      setState(prev => ({ ...prev, loading: true, message: "" }));
       const token = localStorage.getItem("token");
 
       const res = await fetch("https://attendance-and-payroll-management.onrender.com/api/change-password", {
@@ -418,88 +364,102 @@ function ChangePasswordTab() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || "Error changing password.");
 
-      setMessage("✅ Password updated successfully!");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        message: "✅ Password updated successfully!",
+        loading: false
+      });
+
     } catch (err) {
-      setMessage(err.message);
-    } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, message: `❌ ${err.message}`, loading: false }));
     }
   };
 
   return (
-    <div className="space-y-5">
-      <h3 className="text-xl font-semibold border-b pb-2">Change Your Password</h3>
-      
+    <div className="max-w-md mx-auto py-6">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+          <Lock size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-text-main">Change Password</h3>
+        <p className="text-sm text-text-sub mt-1">Ensure your account uses a strong password.</p>
+      </div>
+
       <form onSubmit={handlePasswordChange} className="space-y-4">
-        <input
-          type="password"
-          placeholder="Current Password"
-          className="w-full p-3 border rounded-lg"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="New Password"
-          className="w-full p-3 border rounded-lg"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Confirm New Password"
-          className="w-full p-3 border rounded-lg"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+        <div>
+          <label className="block text-sm font-medium text-text-main mb-1.5">Current Password</label>
+          <input
+            type="password"
+            name="currentPassword"
+            placeholder="Enter current password"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            value={state.currentPassword}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-main mb-1.5">New Password</label>
+          <input
+            type="password"
+            name="newPassword"
+            placeholder="Enter new password"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            value={state.newPassword}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-main mb-1.5">Confirm New Password</label>
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Re-enter new password"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            value={state.confirmPassword}
+            onChange={handleChange}
+          />
+        </div>
 
         <button
           type="submit"
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition w-full"
-          disabled={loading}
+          className="w-full py-3.5 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all active:scale-95 flex justify-center items-center gap-2 mt-4"
+          disabled={state.loading}
         >
-          {loading ? "Updating..." : "Update Password"}
+          {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : "Update Password"}
         </button>
       </form>
 
-      {message && (
-        <p className={`mt-3 text-sm font-medium ${
-          message.includes("✅") ? "text-green-600" : "text-red-600"
-        }`}>
-          {message}
-        </p>
+      {state.message && (
+        <div className={`mt-6 p-4 rounded-xl text-sm font-medium text-center ${state.message.includes("✅") ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-600 border border-red-200"
+          }`}>
+          {state.message}
+        </div>
       )}
     </div>
   );
 }
 
-
 const ProfileModal = ({ mode = "update", employeeId, defaultData = {}, onClose }) => {
-    const user = useSelector((state) => state.auth.user);
-    console.log("Hr data is",user)
-    const [formData, setFormData] = useState({
-    user_id:"",
-    username:"",
-    email:"",
-    mobile:"",  
-    address:"",
-    bankAccount:"",
-    gender:"",
-    IFSC:"",
-    emergencyContact:"",
-    emergencyContactname:"",
-   });
-
+  const user = useSelector((state) => state.auth.user);
+  const [formData, setFormData] = useState({
+    user_id: "",
+    username: "",
+    email: "",
+    mobile: "",
+    address: "",
+    bankAccount: "",
+    gender: "",
+    IFSC: "",
+    emergencyContact: "",
+    emergencyContactname: "",
+  });
   const [message, setMessage] = useState("");
-  
+  const [loading, setLoading] = useState(false);
 
-  // Pre-fill form for update
   useEffect(() => {
     if (mode === "update" && defaultData) {
       setFormData({ ...defaultData });
@@ -514,61 +474,78 @@ const ProfileModal = ({ mode = "update", employeeId, defaultData = {}, onClose }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const url =`http://localhost:5500/api/update/${user.id}`;
-
-    const method = "PUT";
+    setLoading(true);
+    const url = `https://attendance-and-payroll-management.onrender.com/api/update/${user.id}`;
 
     try {
       const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-        
       });
 
       const result = await response.json();
-      console.log("result send is",result)
       if (!response.ok) throw new Error(result.message);
 
-      setMessage(result.message);
-      setTimeout(() => {
-        onClose(); // Close modal after success
-      }, 1000);
+      setMessage("✅ Profile updated successfully!");
+      setTimeout(onClose, 1000);
     } catch (err) {
-      setMessage(err.message);
+      setMessage(`❌ ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const ModalInput = ({ label, name, ...props }) => (
+    <div className="space-y-1">
+      <label className="text-xs font-bold text-text-sub uppercase">{label}</label>
+      <input
+        name={name}
+        className="w-full px-4 py-2 bg-gray-50 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-colors outline-none text-sm font-medium"
+        value={formData[name]}
+        onChange={handleChange}
+        {...props}
+      />
+    </div>
+  )
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white max-w-2xl w-full rounded-xl shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-3 right-4 text-lg text-gray-500 hover:text-red-600">✖</button>
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-surface max-w-2xl w-full rounded-2xl shadow-2xl p-8 relative flex flex-col max-h-[90vh]">
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-text-sub transition-colors"><X size={20} /></button>
 
-        <h2 className="text-xl font-semibold mb-4 text-center">
-          {mode === "add" ? "Add Salary Info" : "Update Salary Info"}
-        </h2>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-text-main">
+            {mode === "add" ? "Add Profile Info" : "Edit Profile Details"}
+          </h2>
+          <p className="text-sm text-text-sub">Update your information below.</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3 text-sm">
-          <div className="grid grid-cols-2 gap-3">
-            <input type="text" name="employee_id" value={formData.user_id} onChange={handleChange} placeholder="Employee ID" disabled={mode === "update"} className="border p-2 rounded" />
-            <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Employee Name" className="border p-2 rounded" />
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="border p-2 rounded" />
-            <input type="text" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Mobile" className="border p-2 rounded" />
-            <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Address" className="border p-2 rounded" />
-            <input type="text" name="bankAccount" value={formData.bankAccount} onChange={handleChange} placeholder="Bank Account" className="border p-2 rounded" />
-            <input type="text" name="IFSC" value={formData.IFSC} onChange={handleChange} placeholder="IFSC Code" className="border p-2 rounded" />
-            <input type="text" name="emergencyContact" value={formData.emergencyContact} onChange={handleChange} placeholder="emergencyContact" className="border p-2 rounded" />
-            <input type="text" name="emergencyContactname" value={formData.emergencyContactname} onChange={handleChange} placeholder="emergencyContactname" className="border p-2 rounded" />
+        <form onSubmit={handleSubmit} className="overflow-y-auto pr-2 custom-scrollbar">
+          <div className="grid md:grid-cols-2 gap-5 mb-6">
+            <ModalInput label="Employee ID" name="user_id" disabled={mode === "update"} />
+            <ModalInput label="Full Name" name="username" />
+            <ModalInput label="Email Address" type="email" name="email" />
+            <ModalInput label="Phone Number" name="mobile" />
+            <ModalInput label="Bank Account" name="bankAccount" />
+            <ModalInput label="IFSC Code" name="IFSC" />
+            <ModalInput label="Emergency Contact (Name)" name="emergencyContactname" />
+            <ModalInput label="Emergency Contact (Phone)" name="emergencyContact" />
+            <div className="md:col-span-2">
+              <ModalInput label="Residential Address" name="address" />
+            </div>
           </div>
 
-          <button type="submit" className="w-full mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-            {mode === "add" ? "Add Info" : "Update Info"}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : (mode === "add" ? "Save Information" : "Save Changes")}
           </button>
         </form>
 
-        {message && <p className="text-center text-sm mt-3 text-green-600">{message}</p>}
+        {message && <p className="text-center text-sm mt-4 font-medium animate-pulse">{message}</p>}
       </div>
     </div>
   );

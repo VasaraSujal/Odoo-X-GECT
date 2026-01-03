@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import {
+  User, Mail, Phone, MapPin, Building2,
+  Briefcase, CreditCard, Calendar, DollarSign,
+  Users, UserPlus, Save
+} from 'lucide-react';
 
 const AddEmployee = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     gender: "",
@@ -21,7 +28,7 @@ const AddEmployee = () => {
     attendanceType: "",
     emergencyContact: "",
     emergencyContactname: "",
-    IFSC: "",
+    IFSC: ""
   });
 
   const [loading, setLoading] = useState(false);
@@ -29,9 +36,8 @@ const AddEmployee = () => {
   const [calculating, setCalculating] = useState(false);
 
   const token = localStorage.getItem("token");
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "https://attendance-and-payroll-management.onrender.com/api";
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5500/api";
 
-  // ✅ Auto-calculate salary components when wage changes
   const handleWageChange = async (wage) => {
     if (!wage || wage <= 0) {
       setSalaryPreview(null);
@@ -67,7 +73,6 @@ const AddEmployee = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // ✅ Trigger wage calculation
     if (name === "wage" && value) {
       handleWageChange(value);
     }
@@ -76,7 +81,6 @@ const AddEmployee = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Enhanced validations
     if (!formData.name || !formData.id || !formData.email || !formData.role) {
       toast.error("❌ Please fill all required fields");
       return;
@@ -103,36 +107,18 @@ const AddEmployee = () => {
       });
 
       if (response.status === 201) {
-        toast.success("✅ Employee added successfully with salary structure!");
-        console.log("Server Response:", response.data);
+        toast.success("✅ Employee added successfully!");
 
-        // Reset form
         setFormData({
-          name: "",
-          gender: "",
-          id: "",
-          joigningDate: "",
-          designation: "",
-          address: "",
-          bankAccount: "",
-          mobile: "",
-          email: "",
-          role: "",
-          wage: "",
-          salary: "",
-          salary_components: {},
-          employmentType: "",
-          attendanceType: "",
-          emergencyContact: "",
-          emergencyContactname: "",
-          IFSC: "",
+          name: "", gender: "", id: "", joigningDate: "", designation: "",
+          address: "", bankAccount: "", mobile: "", email: "", role: "",
+          wage: "", salary: "", salary_components: {}, employmentType: "",
+          attendanceType: "", emergencyContact: "", emergencyContactname: "", IFSC: "",
         });
         setSalaryPreview(null);
       }
     } catch (error) {
       console.error("Full Error Object:", error);
-      console.error("Error Response Data:", error.response?.data);
-      console.error("Form Data Sent:", formData);
       const errorMsg = error.response?.data?.message || "Failed to add employee";
       toast.error(`❌ ${errorMsg}`);
     } finally {
@@ -140,357 +126,177 @@ const AddEmployee = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 p-6 bg-gray-50">
-        <h2 className="text-2xl font-semibold mb-6">Add Employee</h2>
+  const InputField = ({ label, name, type = "text", icon: Icon, placeholder, required = true }) => (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+        {Icon && <Icon size={16} className="text-purple-600" />}
+        {label}
+        {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="relative">
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          required={required}
+          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200 outline-none text-gray-800 placeholder-gray-400"
+        />
+      </div>
+    </div>
+  );
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-xl shadow-md max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
+  const SelectField = ({ label, name, options, icon: Icon, required = true }) => (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+        {Icon && <Icon size={16} className="text-purple-600" />}
+        {label}
+        {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="relative">
+        <select
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          required={required}
+          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-all duration-200 outline-none text-gray-800 appearance-none"
         >
-          {/* Employee Name */}
+          <option value="">Select {label}</option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Employee Name *
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="ex. John Doe"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Employee ID */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Employee ID *
-            </label>
-            <input
-              type="text"
-              name="id"
-              placeholder="ex. CS001"
-              value={formData.id}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Gender *</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            >
-              <option value="">Please Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          {/* Joining Date */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Joining Date *
-            </label>
-            <input
-              type="date"
-              name="joigningDate"
-              value={formData.joigningDate}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Designation */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Designation *
-            </label>
-            <input
-              type="text"
-              name="designation"
-              placeholder="ex. Software Engineer"
-              value={formData.designation}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Address *</label>
-            <input
-              type="text"
-              name="address"
-              placeholder="ex. House no, Society name, District, State"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Email *
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="ex. abc@mail.com"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Mobile */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Mobile *</label>
-            <input
-              type="text"
-              name="mobile"
-              placeholder="ex. 9876543210"
-              value={formData.mobile}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Role */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Role *</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            >
-              <option value="">Select Role</option>
-              <option value="employee">Employee</option>
-              <option value="manager">Manager</option>
-              <option value="hr">HR</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          {/* ✅ NEW: Monthly Wage */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Monthly Wage (₹) *
-            </label>
-            <input
-              type="number"
-              name="wage"
-              placeholder="ex. 50000"
-              value={formData.wage}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-            {calculating && <p className="text-sm text-blue-600 mt-1">Calculating...</p>}
-          </div>
-
-          {/* Employment Type */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Employment Type *
-            </label>
-            <select
-              name="employmentType"
-              value={formData.employmentType}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            >
-              <option value="">Select Type</option>
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Contract">Contract</option>
-            </select>
-          </div>
-
-          {/* Attendance Type */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Attendance Type *
-            </label>
-            <select
-              name="attendanceType"
-              value={formData.attendanceType}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            >
-              <option value="">Select Type</option>
-              <option value="Daily">Daily</option>
-              <option value="Weekly">Weekly</option>
-              <option value="Monthly">Monthly</option>
-            </select>
-          </div>
-
-          {/* Bank Account */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Bank Account No. *
-            </label>
-            <input
-              type="text"
-              name="bankAccount"
-              placeholder="ex. 1234567890123456"
-              value={formData.bankAccount}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* IFSC Code */}
-          <div>
-            <label className="block text-sm font-medium mb-1">IFSC Code *</label>
-            <input
-              type="text"
-              name="IFSC"
-              placeholder="ex. HDFC0001234"
-              value={formData.IFSC}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-              required
-            />
-          </div>
-
-          {/* Emergency Contact */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Emergency Contact
-            </label>
-            <input
-              type="text"
-              name="emergencyContact"
-              placeholder="ex. 9876543210"
-              value={formData.emergencyContact}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-            />
-          </div>
-
-          {/* Emergency Contact Name */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Emergency Contact Name
-            </label>
-            <input
-              type="text"
-              name="emergencyContactname"
-              placeholder="ex. John Doe"
-              value={formData.emergencyContactname}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded"
-            />
-          </div>
-
-          {/* ✅ NEW: Salary Breakdown Preview */}
-          {salaryPreview && (
-            <div className="md:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-200 mt-4">
-              <h3 className="text-lg font-bold text-blue-900 mb-4">📊 Salary Breakdown Preview</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                {/* Allowances */}
-                {salaryPreview.basic && (
-                  <div className="bg-green-100 p-3 rounded border border-green-300">
-                    <div className="text-xs text-gray-600 font-semibold">✅ Basic</div>
-                    <div className="text-lg font-bold text-green-700">₹{salaryPreview.basic.toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.hra && (
-                  <div className="bg-green-100 p-3 rounded border border-green-300">
-                    <div className="text-xs text-gray-600 font-semibold">✅ HRA</div>
-                    <div className="text-lg font-bold text-green-700">₹{salaryPreview.hra.toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.da && (
-                  <div className="bg-green-100 p-3 rounded border border-green-300">
-                    <div className="text-xs text-gray-600 font-semibold">✅ DA</div>
-                    <div className="text-lg font-bold text-green-700">₹{salaryPreview.da.toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.pb && (
-                  <div className="bg-green-100 p-3 rounded border border-green-300">
-                    <div className="text-xs text-gray-600 font-semibold">✅ PB</div>
-                    <div className="text-lg font-bold text-green-700">₹{salaryPreview.pb.toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.lta && (
-                  <div className="bg-green-100 p-3 rounded border border-green-300">
-                    <div className="text-xs text-gray-600 font-semibold">✅ LTA</div>
-                    <div className="text-lg font-bold text-green-700">₹{salaryPreview.lta.toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.fixed !== undefined && (
-                  <div className="bg-yellow-100 p-3 rounded border border-yellow-300">
-                    <div className="text-xs text-gray-600 font-semibold">🟡 Fixed</div>
-                    <div className="text-lg font-bold text-yellow-700">₹{salaryPreview.fixed.toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.pf && (
-                  <div className="bg-red-100 p-3 rounded border border-red-300">
-                    <div className="text-xs text-gray-600 font-semibold">🔴 PF</div>
-                    <div className="text-lg font-bold text-red-700">-₹{Math.abs(salaryPreview.pf).toLocaleString()}</div>
-                  </div>
-                )}
-                {salaryPreview.professionaltax && (
-                  <div className="bg-red-100 p-3 rounded border border-red-300">
-                    <div className="text-xs text-gray-600 font-semibold">🔴 Prof. Tax</div>
-                    <div className="text-lg font-bold text-red-700">-₹{Math.abs(salaryPreview.professionaltax).toLocaleString()}</div>
-                  </div>
-                )}
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                <UserPlus size={24} />
               </div>
+              New Employee
+            </h1>
+            <p className="text-gray-500 mt-1 ml-12">Create a new employee profile and generate credentials</p>
+          </div>
+        </div>
 
-              {/* Totals */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-blue-200 p-3 rounded border border-blue-400 text-center">
-                  <div className="text-xs text-gray-700 font-semibold">Gross</div>
-                  <div className="text-lg font-bold text-blue-800">₹{salaryPreview.totalGross?.toLocaleString()}</div>
-                </div>
-                <div className="bg-red-200 p-3 rounded border border-red-400 text-center">
-                  <div className="text-xs text-gray-700 font-semibold">Deductions</div>
-                  <div className="text-lg font-bold text-red-800">-₹{salaryPreview.totalDeductions?.toLocaleString()}</div>
-                </div>
-                <div className="bg-green-200 p-3 rounded border border-green-400 text-center">
-                  <div className="text-xs text-gray-700 font-semibold">Net</div>
-                  <div className="text-lg font-bold text-green-800">₹{salaryPreview.netSalary?.toLocaleString()}</div>
-                </div>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Section 1: Personal Information */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex items-center gap-2">
+              <User className="text-purple-600" size={20} />
+              <h3 className="font-semibold text-gray-800">Personal Information</h3>
             </div>
-          )}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InputField label="Full Name" name="name" icon={User} placeholder="John Doe" />
+              <InputField label="Employee ID" name="id" icon={Briefcase} placeholder="EMP-001" />
+              <SelectField label="Gender" name="gender" icon={Users} options={["Male", "Female", "Other"]} />
+              <InputField label="Email Address" name="email" type="email" icon={Mail} placeholder="john@company.com" />
+              <InputField label="Mobile Number" name="mobile" icon={Phone} placeholder="+91 9876543210" />
+              <InputField label="Address" name="address" icon={MapPin} placeholder="Full residential address" />
+            </div>
+          </div>
 
-          {/* Submit Button */}
-          <div className="md:col-span-2">
+          {/* Section 2: Professional Details */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex items-center gap-2">
+              <Briefcase className="text-purple-600" size={20} />
+              <h3 className="font-semibold text-gray-800">Professional Details</h3>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InputField label="Designation" name="designation" icon={Briefcase} placeholder="Software Engineer" />
+              <SelectField label="Role" name="role" icon={User} options={["HR", "employee"]} />
+              <SelectField label="Employment Type" name="employmentType" icon={Building2} options={["Full Time", "Part Time", "Contract"]} />
+              <SelectField label="Attendance Type" name="attendanceType" icon={Calendar} options={["Daily", "Hourly"]} />
+              <InputField label="Joining Date" name="joigningDate" type="date" icon={Calendar} placeholder="" />
+            </div>
+          </div>
+
+          {/* Section 3: Financial Information */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex items-center gap-2">
+              <DollarSign className="text-purple-600" size={20} />
+              <h3 className="font-semibold text-gray-800">Financial Information</h3>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InputField label="Wage / CTC" name="wage" type="number" icon={DollarSign} placeholder="0.00" required={false} />
+              <InputField label="Bank Account No" name="bankAccount" icon={CreditCard} placeholder="XXXXXXXXXXXX" />
+              <InputField label="IFSC Code" name="IFSC" icon={Building2} placeholder="SBIN000XXXX" />
+            </div>
+            {/* Salary Preview */}
+            {calculating && (
+              <div className="px-6 pb-6 text-sm text-purple-600 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                Calculating salary structure...
+              </div>
+            )}
+            {salaryPreview && (
+              <div className="px-6 pb-6 pt-0">
+                <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                  <h4 className="text-sm font-semibold text-purple-900 mb-2">Salary Structure Preview</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs md:text-sm">
+                    <div><span className="text-purple-500 block">Basic</span> ₹{salaryPreview.basic}</div>
+                    <div><span className="text-purple-500 block">HRA</span> ₹{salaryPreview.hra}</div>
+                    <div><span className="text-purple-500 block">DA</span> ₹{salaryPreview.da}</div>
+                    <div className="font-bold text-purple-700"><span className="text-purple-500 block font-normal">Net Salary</span> ₹{salaryPreview.netSalary}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section 4: Emergency Contact */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex items-center gap-2">
+              <Phone className="text-purple-600" size={20} />
+              <h3 className="font-semibold text-gray-800">Emergency Contact</h3>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InputField label="Contact Name" name="emergencyContactname" icon={User} placeholder="Relative Name" />
+              <InputField label="Contact Number" name="emergencyContact" icon={Phone} placeholder="Emergency Phone" />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-4">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
-              disabled={loading || calculating}
-              className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+              className={`px-6 py-2.5 rounded-xl bg-purple-600 text-white font-medium hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all flex items-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {loading ? "Adding Employee..." : "Add Employee"}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  Add Employee
+                </>
+              )}
             </button>
           </div>
+
         </form>
       </div>
     </div>
