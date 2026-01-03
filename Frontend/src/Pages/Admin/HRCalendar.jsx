@@ -129,7 +129,7 @@ const HRCalendar = () => {
   const [formData, setFormData] = useState({ dd: '', mm: '', yy: '', reason: '' });
 
   useEffect(() => {
-    fetch("https://attendance-and-payroll-management.onrender.com/api/holidays/")
+    fetch("/api/holidays/")
       .then(res => res.json())
       .then(data => {
         const holidayMap = {};
@@ -163,7 +163,7 @@ const HRCalendar = () => {
     if (!dd || !mm || !yy || !reason) return alert("All fields are required");
 
     try {
-      const res = await fetch("https://attendance-and-payroll-management.onrender.com/api/holidays/add", {
+      const res = await fetch("http://localhost:5500/api/holidays/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, reason })
@@ -237,25 +237,37 @@ const HRCalendar = () => {
               <input
                 type="text"
                 placeholder="DD"
-                className="border px-3 py-2 rounded-lg focus:outline-none"
+                name="dd"
+                value={formData.dd}
+                onChange={handleInputChange}
+                className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <input
                 type="text"
                 placeholder="MM"
-                className="border px-3 py-2 rounded-lg focus:outline-none"
+                name="mm"
+                value={formData.mm}
+                onChange={handleInputChange}
+                className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <input
                 type="text"
                 placeholder="YY"
-                className="border px-3 py-2 rounded-lg focus:outline-none"
+                name="yy"
+                value={formData.yy}
+                onChange={handleInputChange}
+                className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <input
                 type="text"
                 placeholder="Reason Behind Giving Holiday"
-                className="col-span-4 border px-3 py-2 rounded-lg focus:outline-none"
+                name="reason"
+                value={formData.reason}
+                onChange={handleInputChange}
+                className="col-span-4 border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <button className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+            <button onClick={handleAddHoliday} className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
               Set
             </button>
           </div>

@@ -90,9 +90,9 @@ const Sidebar = () => {
                   navigate(path);
                   setIsOpen(false);
                 }}
-                className={`flex items-center gap-3.5 p-3 rounded-xl w-full text-left transition-all duration-200 group relative overflow-hidden shrink-0 ${active
-                  ? 'bg-primary text-white shadow-lg shadow-primary/25 font-semibold'
-                  : 'text-text-sub hover:bg-gray-100/80 hover:text-text-main font-medium'
+                className={`flex items-center gap-3 p-2 rounded-lg w-full text-left transition ${isActive(path)
+                    ? 'bg-indigo-100 text-indigo-600 font-semibold'
+                    : 'hover:bg-gray-100'
                   }`}
               >
                 {/* Icon Wrapper */}

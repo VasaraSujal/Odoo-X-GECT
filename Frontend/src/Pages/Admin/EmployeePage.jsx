@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import {cacheUser} from '../../Redux/Slice'
 import jsPDF from 'jspdf'
+import { registerNotoSans } from '../NotoSansVariable.react'
 import {
   ChevronDown,
   ChevronUp,
@@ -101,7 +102,7 @@ const FetchEmployee= async()=>{
   try{
   
     
-    const response= await fetch(`https://attendance-and-payroll-management.onrender.com/api/users/${id}`);
+    const response= await fetch(`http://localhost:5500/api/users/${id}`);
     
       if(!response.ok){
             throw new Error("Failed to fetch employees");
@@ -307,7 +308,7 @@ useEffect(() => {
     }
 
     try {
-      const res = await fetch("https://attendance-and-payroll-management.onrender.com/api/Generate", {
+      const res = await fetch("http://localhost:5500/api/Generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -347,32 +348,136 @@ console.log("recieve data is, in data variable",data)
 
   const downloadPDF = (item) => {
   const doc = new jsPDF();
+  registerNotoSans(doc);
+  doc.setFont("NotoSansVariable");
 
+  const lineHeight = 8;
+  const rupee = String.fromCharCode(8377);
+  let y = 15;
+
+  // ===== Colors =====
+  const blue = "#0096FF";
+  const lightGray = "#f2f2f2";
+  const green = "#007F00";
+
+  // ===== Header Bar =====
+  doc.setFillColor(blue);
+  doc.setTextColor(255, 255, 255);
+  doc.rect(0, 0, 210, 15, "F");
+  doc.setFontSize(24);
+  doc.text("DayFlow", 105, 10, { align: "center" });
+
+  y = 24;
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(16);
-  doc.text(`Salary Slip ${item.month}`, 80, 15);
+  doc.text(`Pay Slip - ${item.month}`, 105, y, { align: 'center' });
 
+  y += lineHeight;
+  doc.setFontSize(14);
+
+  y += 2 * lineHeight;
+
+  // ===== Employee Info =====
+  doc.setFillColor(lightGray);
+  doc.rect(10, y - 6, 190, 8, "F");
   doc.setFontSize(12);
-  doc.text(`Employee ID: ${item.employee_id}`, 10, 30);
-  doc.text(`Employee Name: ${item.employee_name}`, 10, 40);
-  doc.text(`Month: ${item.month}`, 10, 50);
-  doc.text(`Generated On: ${item.generated_on}`, 10, 60);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Employee Details:", 12, y);
 
-  doc.text(`Basic Salary: ₹${item.basic_salary}`, 10, 80);
-  doc.text(`Gross Salary: ₹${item.salary_breakdown.gross_salary}`, 10, 90);
-  doc.text(`Net Salary: ₹${Number(item.salary_breakdown.net_salary).toFixed(2)}`, 10, 100);
+  y += lineHeight;
+  doc.text(`Employee ID: ${item.employee_id}`, 10, y);
+  doc.text(`Generated On: ${item.generated_on}`, 130, y);
 
-  doc.text(`\nDeductions:`, 10, 120);
-  doc.text(`• Tax: ₹${item.deductions.tax_amount}`, 10, 130);
-  doc.text(`• PF: ₹${item.deductions.pf_amount}`, 10, 140);
-  doc.text(`• Leave Deduction: ₹${Number(item.deductions.leave_deduction).toFixed(2)}`, 10, 150);
-  doc.text(`• Total Deduction: ₹${Number(item.deductions.total_deduction).toFixed(2)}`, 10, 160);
+  y += lineHeight;
+  doc.text(`Name: ${item.employee_name}`, 10, y);
+  doc.text(`Month: ${item.month}`, 130, y);
 
-  doc.text(`\nAttendance Summary:`, 10, 180);
-  doc.text(`• Total Working Days: ${item.attendance_summary.total_working_days}`, 10, 190);
-  doc.text(`• Present Days: ${item.attendance_summary.present_days}`, 10, 200);
-  doc.text(`• Absent Days: ${item.attendance_summary.absent_days}`, 10, 210);
-  doc.text(`• Paid Leaves: ${item.attendance_summary.paid_leave_allowance}`, 10, 220);
-  doc.text(`• Unpaid Leave Days: ${item.attendance_summary.unpaid_leave_days}`, 10, 230);
+  y += 2 * lineHeight;
+
+  // ===== Attendance Summary =====
+  doc.setFillColor(lightGray);
+  doc.rect(10, y - 6, 190, 8, "F");
+  doc.text("Attendance Summary:", 12, y);
+  y += lineHeight;
+  doc.text(`• Total Working Days: ${item.attendance_summary.total_working_days}`, 10, y);
+  y += lineHeight;
+  doc.text(`• Present Days: ${item.attendance_summary.present_days}`, 10, y);
+  y += lineHeight;
+  doc.text(`• Absent Days: ${item.attendance_summary.absent_days}`, 10, y);
+  y += lineHeight;
+  doc.text(`• Paid Leaves: ${item.attendance_summary.paid_leave_allowance}`, 10, y);
+  y += lineHeight;
+  doc.text(`• Unpaid Leaves: ${item.attendance_summary.unpaid_leave_days}`, 10, y);
+
+  y += 2 * lineHeight;
+
+  // ===== Salary Breakdown Header =====
+  doc.setFillColor(lightGray);
+  doc.rect(10, y - 6, 190, 8, "F");
+  doc.text("Salary Breakdown:", 12, y);
+
+  y += lineHeight;
+
+  // ===== Table Headers =====
+  doc.rect(10, y, 190, lineHeight * 1.1);
+  doc.setFillColor("#e6e6e6");
+  doc.setDrawColor(200);
+  doc.setLineWidth(0.1);
+  doc.text("Earnings", 12, y + 6);
+  doc.text(`Amount (${rupee})`, 60, y + 6);
+  doc.text("Deductions", 112, y + 6);
+  doc.text(`Amount (${rupee})`, 160, y + 6);
+
+  y += lineHeight * 1.2;
+
+  const drawRow = (labelLeft, valLeft, labelRight, valRight) => {
+    doc.rect(10, y - 1, 95, lineHeight);
+    doc.rect(105, y - 1, 95, lineHeight);
+
+    doc.text(labelLeft || "", 12, y + 5);
+    doc.text(valLeft || "", 60, y + 5);
+    doc.text(labelRight || "", 112, y + 5);
+    doc.text(valRight || "", 160, y + 5);
+    y += lineHeight;
+  };
+
+  drawRow("Basic Salary", `${rupee}${item.basic || item.basic_salary || 0}`, "PF", `${rupee}${item.pf || item.deductions?.pf_amount || 0}`);
+  drawRow("HRA", `${rupee}${item.hra || 0}`, "Professional Tax", `${rupee}${item.professionaltax || item.deductions?.tax_amount || 0}`);
+  drawRow("DA", `${rupee}${item.da || 0}`, "Leave Deduction", `${rupee}${Number(item.deductions?.leave_deduction || 0).toFixed(2)}`);
+  drawRow("PB", `${rupee}${item.pb || 0}`, "Total Deduction", `${rupee}${Number(item.total_deductions || item.deductions?.total_deduction || 0).toFixed(2)}`);
+  drawRow("LTA", `${rupee}${item.lta || 0}`, "", "");
+  drawRow("Fixed", `${rupee}${item.fixed || 0}`, "", "");
+  drawRow("Gross Salary", `${rupee}${item.gross_salary || item.salary_breakdown?.gross_salary || 0}`, "", "");
+
+  // ===== Net Salary Highlight =====
+  y += lineHeight;
+  doc.setFillColor("#d9fdd3");
+  doc.rect(10, y, 190, lineHeight + 2, "F");
+  doc.setTextColor(0, 102, 0);
+  doc.text(`Net Salary: ${rupee}${Number(item.net_salary || item.salary_breakdown?.net_salary || 0).toFixed(2)}`, 12, y + 7);
+ 
+  doc.setTextColor(0, 0, 0);
+
+  y += 3 * lineHeight;
+
+  // ===== Footer Section =====
+  doc.setDrawColor(180);
+  doc.line(10, y, 200, y);
+  y += lineHeight;
+  doc.text("Prepared By", 20, y);
+  doc.text("Checked By", 90, y);
+  doc.text("Authorized By", 160, y);
+
+  y += lineHeight-1;  
+  doc.setFontSize(10);
+  doc.text("Rajeev Sharma", 20, y);
+  doc.text("(HR Executive)", 20, y + 4);
+
+  doc.text("Meenal Kapoor", 90, y);
+  doc.text("(Payroll Manager)", 90, y + 4);
+
+  doc.text("Anil Deshmukh", 160, y);
+  doc.text("(Head - Finance)", 160, y + 4);
 
   doc.save(`SalarySlip-${item.month}.pdf`);
 };
@@ -532,7 +637,7 @@ const Attendance=()=>{
     const fetchAttendanceData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`https://attendance-and-payroll-management.onrender.com/api/getAllAttendanceByMonthofuser/${user_id}/${selectedMonth}`);
+        const res = await fetch(`http://localhost:5500/api/getAllAttendanceByMonthofuser/${user_id}/${selectedMonth}`);
         const attendanceRecords = await res.json();
 
         const presentDates = new Set(attendanceRecords.map(att => att.date));
